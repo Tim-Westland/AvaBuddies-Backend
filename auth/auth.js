@@ -54,7 +54,7 @@ passport.use('login', new localStrategy({
 //This verifies that the token sent by the user is valid
 passport.use(new JWTstrategy({
   //secret we used to sign our JWT
-  secretOrKey : 'top_secret',
+  secretOrKey : keys.jwt.secret_key,
   //we expect the user to send the token as a query paramater with the name 'secret_token'
   jwtFromRequest : ExtractJWT.fromUrlQueryParameter('secret_token')
 }, async (token, done) => {

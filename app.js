@@ -5,10 +5,10 @@ const bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var passport = require('passport');
 var logger = require('morgan');
-var UserModel = require('./models/user');
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
+var userRouter = require('./routes/user');
 var secRouter = require('./routes/sec-route');
 
 var app = express();
@@ -38,13 +38,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use( bodyParser.urlencoded({ extended : false }) );
 
-app.use('/', indexRouter);
 app.use('/auth', authRouter);
-app.use('/sec', secRouter);
+
+app.use('/', passport.authenticate('jwt', {
+  session : false
+}), indexRouter );
+
 
 app.use('/user', passport.authenticate('jwt', {
   session : false
-}), secRouter );
+}), userRouter );
 
 //We plugin our jwt strategy as a middleware so only verified users can access this route
 

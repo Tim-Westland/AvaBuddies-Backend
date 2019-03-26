@@ -1,5 +1,5 @@
 module.exports = {
   jwt:{
-    secret_key: '' //DEFINE KEY
+    secret_key: 'aasdfasdf' //DEFINE KEY
   }
 }

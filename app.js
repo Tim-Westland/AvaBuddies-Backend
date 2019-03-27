@@ -38,6 +38,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use( bodyParser.urlencoded({ extended : false }) );
 
+app.use(function authChecker(req, res, next) {
+  if (req.path==='/auth') {
+      next();
+  } else {
+     res.redirect(res.status(401), "/auth");
+  }
+});
+
 app.use('/auth', authRouter);
 
 app.use('/', passport.authenticate('jwt', {

@@ -6,7 +6,6 @@ const authHelper = require('../helpers/authHelper');
 
 const router = express.Router();
 
-
 //When the user sends a post request to this route, passport authenticates the user based on the
 //middleware created previously
 router.post('/signup', passport.authenticate('signup', {
@@ -20,6 +19,7 @@ router.post('/signup', passport.authenticate('signup', {
 });
 
 router.post('/login', async (req, res, next) => {
+  
   passport.authenticate('login', async (err, user, info) => {
     try {
       if (err || !user) {
@@ -42,7 +42,6 @@ router.post('/login', async (req, res, next) => {
   })(req, res, next);
 });
 
-//msal
 router.get('/', function(req, res, next) {
   res.render('auth', { title: 'Express', authUrl: authHelper.getAuthUrl()});
 });
@@ -53,6 +52,7 @@ router.get('/authorize', function(req, res) {
     console.log('');
     console.log('Retrieved auth code in /authorize: ' + authCode);
     authHelper.getTokenFromCode(authCode, req, res);
+    res.redirect('/');
   }
   else {
     // redirect to home

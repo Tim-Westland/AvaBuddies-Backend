@@ -1,10 +1,11 @@
 const simpleOauthModule = require("simple-oauth2");
+const jwt = require('jsonwebtoken');
 
 var clientId = "3ad76aa6-6405-4d8b-bfc6-b5050fa71aaa";
 var clientSecret = ":-*6]?X*.{-/={*?]+^?_?I]?4d$+L;|*)=%*=()&";
 var redirectUri = "http://localhost:3000/auth/authorize";
 
-var scopes = ["openid", "offline_access"];
+var scopes = ["User.ReadBasic.All", "User.Read", "openid", "offline_access"];
 
 const oauth2 = simpleOauthModule.create({
   client: {
@@ -12,7 +13,7 @@ const oauth2 = simpleOauthModule.create({
     secret: clientSecret
   },
   auth: {
-    tokenHost: 'https://login.microsoftonline.com',
+    tokenHost: "https://login.microsoftonline.com",
     tokenPath: "common/oauth2/v2.0/token",
     authorizePath: "common/oauth2/v2.0/authorize"
   },
@@ -32,64 +33,31 @@ module.exports = {
     return returnVal;
   },
 
-    getTokenFromCode: async function(code, req, res) {
-        const options = {
-            code,
-            redirect_uri: redirectUri,
-          };
+  getTokenFromCode: async function(code, req, res) {
+    const options = {
+      code,
+      redirect_uri: redirectUri
+    };
 
-          try {
-            const result = await oauth2.authorizationCode.getToken(options);
-      
-            console.log('The resulting token: ', result);
-      
-            const token = oauth2.accessToken.create(result);
-      
-            return res.status(200).json(token)
-          } catch(error) {
-            console.error('Access Token Error', error.message);
-            return res.status(500).json('Authentication failed');
-          }
-      
-    
-        /*oauth2.authorizationCode.getToken(
-      {
-        code: auth_code,
-        redirect_uri: redirectUri,
-        scope: scopes.join(" ")
-      },
-      function(error, result) {
-        if (error) {
-          console.log("Access token error: ", error.message);
-          callback(request, response, error, null);
-        } else {
-          var token = oauth2.accessToken.create(result);
-          console.log("");
-          console.log("Token created: ", token.token);
-          callback(request, response, null, token);
-        }
-      }
-    );*/
-  },
+    try {
+      const result = await oauth2.authorizationCode.getToken(options);
 
-  getEmailFromIdToken: function(id_token) {
-    console.log('test')
-    // JWT is in three parts, separated by a '.'
-    var token_parts = id_token.split(".");
+      console.log("The resulting token: ", result);
 
-    // Token content is in the second part, in urlsafe base64
-    var encoded_token = new Buffer(
-      token_parts[1].replace("-", "+").replace("_", "/"),
-      "base64"
-    );
+      const token = oauth2.accessToken.create(result);
 
-    var decoded_token = encoded_token.toString();
+      const user = jwt.decode(token.token.id_token);
 
-    var jwt = JSON.parse(decoded_token);
+      // Save the access token in a cookie
+      res.cookie("graph_access_token", token.token.access_token, {
+        maxAge: 3600000,
+        httpOnly: true
+      });
 
-    console.log(jwt.preferred_username)
-    // Email is in the preferred_username field
-    return jwt.preferred_username;
+    } catch (error) {
+      console.error("Access Token Error", error.message);
+      return res.status(500).json("Authentication failed");
+    }
   },
 
   getTokenFromRefreshToken: function(
@@ -111,5 +79,29 @@ module.exports = {
         callback(request, response, null, result);
       }
     });
-  }
+  },
+
+  async getAccessToken(cookies, res) {
+    var cookiesList = this.parseCookies(cookies);
+
+    // Do we have an access token cached?
+    console.log(cookiesList.graph_access_token);
+    let token = cookiesList.graph_access_token;
+  
+    return token;
+  },
+
+  parseCookies (request) {
+    var list = {},
+        rc = request;
+
+    rc && rc.split(';').forEach(function( cookie ) {
+        var parts = cookie.split('=');
+        list[parts.shift().trim()] = decodeURI(parts.join('='));
+    });
+
+    return list;
+}
 };
+
+

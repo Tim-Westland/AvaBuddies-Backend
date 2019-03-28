@@ -19,8 +19,23 @@ router.get('/profile', (req, res, next) => {
   })
 });
 
+router.delete('/destroy/:id', (req, res) => {
+  var id = req.params.id;
+  User.findOne({
+    _id: id
+  }).remove().exec();
+  res.json({status: 'success'})
+});
+
+router.get('/find/:keyword', (req, res) => {
+  var id = req.params.id;
+  User.find({
+    _id: id
+  }).remove().exec();
+  res.json({status: 'success'})
+});
+
 router.get('/switchrole', (req, res, next) => {
-  //We'll just send back the user details and the token
   User.
   findOne({
     _id: req.user._id

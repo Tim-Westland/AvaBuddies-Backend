@@ -15,7 +15,7 @@ var app = express();
 
 require('./auth/auth');
 
-mongoose.connect('mongodb://localhost:27017/passport', {
+mongoose.connect('mongodb://server:ry5pm4EaeyGR@ds121636.mlab.com:21636/avabuddies-backend-live', {
   useNewUrlParser: true
 });
 

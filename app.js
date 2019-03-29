@@ -1,3 +1,5 @@
+const dotenv = require('dotenv');
+const result = dotenv.config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -15,7 +17,7 @@ var app = express();
 
 require('./auth/auth');
 
-mongoose.connect('mongodb://server:ry5pm4EaeyGR@ds121636.mlab.com:21636/avabuddies-backend-live', {
+mongoose.connect(process.env.DATABASE, {
   useNewUrlParser: true
 });
 

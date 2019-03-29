@@ -30,7 +30,11 @@ const UserSchema = new Schema({
     type: Boolean,
     default: false
   },
-  image: {type:String}
+  image: {
+    type:String,
+    required: true,
+    default: ''
+  }
 
 });
 

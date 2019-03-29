@@ -1,15 +1,55 @@
 const express = require('express');
 const router = express.Router();
-
+const User = require('../models/user');
 //Lets say the route below is very sensitive and we want only authorized users to have access
 
 //Displays information tailored according to the logged in user
 router.get('/profile', (req, res, next) => {
   //We'll just send back the user details and the token
-  res.json({
-    message : 'You made it to the securer route',
-    user : req.user,
-    token : req.query.secret_token
+  console.log(req.user);
+  User.
+  findOne({
+    _id: req.user._id
+  }).
+  // select('_id title').
+  exec(function(err, user) {
+    res.json({
+      user : user,
+    })
+  })
+});
+
+router.delete('/destroy/:id', (req, res) => {
+  var id = req.params.id;
+  User.findOne({
+    _id: id
+  }).remove().exec();
+  res.json({status: 'success'})
+});
+
+router.get('/find/:keyword', (req, res) => {
+  var id = req.params.id;
+  User.find({
+    _id: id
+  }).remove().exec();
+  res.json({status: 'success'})
+});
+
+router.get('/switchrole', (req, res, next) => {
+  User.
+  findOne({
+    _id: req.user._id
+  }).
+  // select('_id title').
+  exec(function(err, user) {
+    if(user.role == 'user'){
+      user.role = 'admin'
+    }
+    else{
+      user.role = 'user'
+    }
+    user.save();
+    res.json({status: 'success'})
   })
 });
 

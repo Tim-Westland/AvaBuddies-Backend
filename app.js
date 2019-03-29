@@ -44,7 +44,6 @@ app.use('/', passport.authenticate('jwt', {
   session : false
 }), indexRouter );
 
-
 app.use('/user', passport.authenticate('jwt', {
   session : false
 }), userRouter );

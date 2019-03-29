@@ -1,11 +1,46 @@
+var request = require('supertest');
 var expect = require('chai').expect;
 var should = require('chai').should();
 
-var app = require('express')();
-var calendar = require('../routes/user');
-app.use('/', calendar);
+const bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var passport = require('passport');
+var logger = require('morgan');
+var express = require('express');
 
-function makeRequest(route, statusCode, done){
+var indexRouter = require('../routes/index');
+var authRouter = require('../routes/auth');
+var userRouter = require('../routes/user');
+var secRouter = require('../routes/sec-route');
+
+mongoose.connect('mongodb://server:ry5pm4EaeyGR@ds121636.mlab.com:21636/avabuddies-backend-live', {
+	useNewUrlParser: true
+});
+
+require('../auth/auth');
+
+var app = express();
+
+//Get the default connection
+var db = mongoose.connection;
+
+//Bind connection to error event (to get notification of connection errors)
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+});
+
+app.use('/auth', authRouter);
+
+app.use('/', passport.authenticate('jwt', {
+	session : false
+}), indexRouter );
+
+app.use('/user', passport.authenticate('jwt', {
+	session : false
+}), userRouter );
+
+
+function makeGetRequest(route, statusCode, done){
 	request(app)
 		.get(route)
 		.expect(statusCode)
@@ -16,25 +51,35 @@ function makeRequest(route, statusCode, done){
 		});
 };
 
-describe('Testing user role', function(){
-	describe('without params', function(){
-		it('should return todays date', function(done){
-			var today = new Date();
-			var expectedString =
-				(today.getDate() < 10 ? '0' : '') +
-				today.getDate() + '-' +
-				(today.getMonth() + 1 < 10 ? '0' : '') +
-				(today.getMonth() + 1) + '-' +
-				today.getFullYear();
+function makePostRequest(route, data, statusCode, done){
+	request(app)
+		.post(route)
+		.send(data)
+		.expect(statusCode)
+		.end(function(err, res){
+			if(err){ return done(err); }
 
-			makeRequest('/', 200, function(err, res){
-				if(err){ return done(err); }
-
-				expect(res.body).to.have.property('date');
-				expect(res.body.date).to.not.be.undefined;
-				expect(res.body.date).to.equal(expectedString);
-				done();
-			});
+			done(null, res);
 		});
+};
+
+describe('Auth', function(){
+	it('authenticated path should return an error when no token is used.', function(done) {
+		makePostRequest('/auth/login','email=simon@projectsoa.onmicrosoft.com;password=SamplePassword',400, done)
+
+	});
+	it('authenticated path should return an error when a invallid token is used.', function() {
+
+
+	});
+});
+
+describe('User', function() {
+	it('a profile should be returned of the current user when visiting /profile.', function(done) {//TODO mock the auth
+		makeGetRequest('/user/profile', 400, done);
+
+	});
+	it('authenticated path should return an error when a invallid token is used.', function() {
+
 	});
 });

@@ -19,6 +19,30 @@ router.get('/profile', (req, res, next) => {
   })
 });
 
+router.post('/updateprofile', (req,res)=>{
+  User.findOne({
+    _id: req.user._id
+  }).exec(function (err,user) {
+    user.aboutme = req.body.aboutme;
+    user.sharelocation = req.body.sharelocation;
+
+
+
+    user.save();
+    res.json({status: 'success'})
+  })
+});
+
+router.post('/changeimage', (req,res)=>{
+  User.findOne({
+    _id: req.user._id
+  }).exec(function (err,user) {
+    user.image = req.body.image;
+    user.save();
+    res.json({status: 'success'})
+  })
+});
+
 router.get('/list', (req,res) => {
   User.find().exec(function (err, result) {
     res.json(result);

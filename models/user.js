@@ -8,14 +8,30 @@ const UserSchema = new Schema({
     required: true,
     unique: true
   },
+  name: {
+    type: String,
+    required: true,
+    default: ''
+  },
   password: {
     type: String,
     required: true
   },
+  aboutme:{
+    type: String,
+
+  },
+  sharelocation:{
+    type: Boolean,
+    required: true,
+    default: false
+  },
   isAdmin: {
     type: Boolean,
     default: false
-  }
+  },
+  image: {type:String}
+
 });
 
 //This is called a pre-hook, before the user information is saved in the database

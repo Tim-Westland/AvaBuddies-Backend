@@ -13,13 +13,16 @@ var authRouter = require('../routes/auth');
 var userRouter = require('../routes/user');
 var secRouter = require('../routes/sec-route');
 
-mongoose.connect('mongodb://server:ry5pm4EaeyGR@ds121636.mlab.com:21636/avabuddies-backend-live', {
+mongoose.connect('mongodb://server:9T9F8QR9xzBo@ds121636.mlab.com:21636/avabuddies-backend-dev', {
 	useNewUrlParser: true
 });
 
 require('../auth/auth');
 
 var app = express();
+app.use( bodyParser.urlencoded({ extended : false }) );
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 //Get the default connection
 var db = mongoose.connection;
@@ -58,28 +61,14 @@ function makePostRequest(route, data, statusCode, done){
 		.expect(statusCode)
 		.end(function(err, res){
 			if(err){ return done(err); }
-
+			console.log(res.text);
 			done(null, res);
 		});
 };
 
 describe('Auth', function(){
 	it('authenticated path should return an error when no token is used.', function(done) {
-		makePostRequest('/auth/login','email=simon@projectsoa.onmicrosoft.com;password=SamplePassword',400, done)
-
-	});
-	it('authenticated path should return an error when a invallid token is used.', function() {
-
-
-	});
-});
-
-describe('User', function() {
-	it('a profile should be returned of the current user when visiting /profile.', function(done) {//TODO mock the auth
-		makeGetRequest('/user/profile', 400, done);
-
-	});
-	it('authenticated path should return an error when a invallid token is used.', function() {
+		makePostRequest('/auth/login','email=simon@projectsoa.onmicrosoft.com&password=SamplePassword',200, done);
 
 	});
 });

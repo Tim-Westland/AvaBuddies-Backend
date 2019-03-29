@@ -42,11 +42,11 @@ router.get('/switchrole', (req, res, next) => {
   }).
   // select('_id title').
   exec(function(err, user) {
-    if(user.role == 'user'){
-      user.role = 'admin'
+    if(user.isAdmin == false){
+      user.isAdmin = true
     }
     else{
-      user.role = 'user'
+      user.isAdmin = false
     }
     user.save();
     res.json({status: 'success'})

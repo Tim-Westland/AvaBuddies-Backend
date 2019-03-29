@@ -33,7 +33,7 @@ router.post('/updateprofile', (req,res)=>{
   })
 });
 
-router.post('/changeimage', (req,res)=>{
+router.post('/updateprofilepicture', (req,res)=>{
   User.findOne({
     _id: req.user._id
   }).exec(function (err,user) {

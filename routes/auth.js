@@ -2,8 +2,10 @@ const express = require('express');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
+const authHelper = require('../helpers/authHelper');
 
 const router = express.Router();
+
 
 //When the user sends a post request to this route, passport authenticates the user based on the
 //middleware created previously
@@ -38,6 +40,25 @@ router.post('/login', async (req, res, next) => {
       return next(error);
     }
   })(req, res, next);
+});
+
+//msal
+router.get('/', function(req, res, next) {
+  res.render('auth', { title: 'Express', authUrl: authHelper.getAuthUrl()});
+});
+
+router.get('/authorize', function(req, res) {
+  var authCode = req.query.code;
+  if (authCode) {
+    console.log('');
+    console.log('Retrieved auth code in /authorize: ' + authCode);
+    authHelper.getTokenFromCode(authCode, req, res);
+  }
+  else {
+    // redirect to home
+    console.log('/authorize called without a code parameter, redirecting to login');
+    res.redirect('/auth');
+  }
 });
 
 module.exports = router;

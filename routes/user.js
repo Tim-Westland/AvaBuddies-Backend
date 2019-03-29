@@ -19,6 +19,12 @@ router.get('/profile', (req, res, next) => {
   })
 });
 
+router.get('/list', (req,res) => {
+  User.find().exec(function (err, result) {
+    res.json(result);
+  })
+});
+
 router.delete('/destroy/:id', (req, res) => {
   var id = req.params.id;
   User.findOne({

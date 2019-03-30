@@ -41,7 +41,7 @@ const UserSchema = new Schema({
 //this function will be called, we'll get the plain text password, hash it and store it.
 UserSchema.pre('save', async function(next) {
     if (this.isNew) {
-    console.log("Saving user")
+    //console.log("Saving user")
       //'this' refers to the current document about to be saved
       const user = this;
       //Hash the password with a salt round of 10, the higher the rounds the more secure, but the slower
@@ -50,7 +50,7 @@ UserSchema.pre('save', async function(next) {
       //Replace the plain text password with the hash and then store it
       this.password = hash;
   } else {
-      console.log("Updating user")
+      //console.log("Updating user")
   }
   //Indicates we're done and moves on to the next middleware
   next();

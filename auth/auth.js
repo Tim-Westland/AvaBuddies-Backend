@@ -28,9 +28,11 @@ passport.use('login', new localStrategy({
 
 }, async (email, password, done) => {
   try {
+    console.log("Login log:");
     //Find the user associated with the email provided by the user
     const user = await UserModel.findOne({ email });
     if( !user ){
+      console.log("User not Found");
       //If the user isn't found in the database, return a message
       return done(null, false, { message : 'User not found'});
     }
@@ -42,6 +44,7 @@ passport.use('login', new localStrategy({
     //If the passwords match, it returns a value of true.
     const validate = await user.isValidPassword(password);
     if( !validate ){
+      console.log("User not Validated");
       return done(null, false, { message : 'Wrong Password'});
     }
     console.log("User Validated");
@@ -49,6 +52,7 @@ passport.use('login', new localStrategy({
     //Send the user information to the next middleware
     return done(null, user, { message : 'Logged in Successfully'});
   } catch (error) {
+    console.log("Login Failed");
     return done(error);
   }
 }));

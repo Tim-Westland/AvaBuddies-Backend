@@ -7,23 +7,23 @@ const ExtractJWT = require('passport-jwt').ExtractJwt;
 const keys = require('../config/keys');
 
 //Create a passport middleware to handle user registration
-passport.use('signup', new localStrategy({
-  usernameField : 'email',
-  passwordField : 'password',
-}, async (email, password, done) => {
-    try {
-      var user = new UserModel({
-        email: email,
-        name: 'EMPTY',
-        password: password
-      });
-      await user.save();
-      //Send the user information to the next middleware
-      return done(null, user);
-    } catch (error) {
-      done(error);
-    }
-}));
+// passport.use('signup', new localStrategy({
+//   usernameField : 'email',
+//   passwordField : 'password',
+// }, async (email, password, done) => {
+//     try {
+//       var user = new UserModel({
+//         email: email,
+//         name: 'EMPTY',
+//         password: password
+//       });
+//       await user.save();
+//       //Send the user information to the next middleware
+//       return done(null, user);
+//     } catch (error) {
+//       done(error);
+//     }
+// }));
 
 //Create a passport middleware to handle User login
 passport.use('login', new localStrategy({
@@ -32,31 +32,23 @@ passport.use('login', new localStrategy({
 
 }, async (email, password, done) => {
   try {
-    console.log("Login log:");
     //Find the user associated with the email provided by the user
     const user = await UserModel.findOne({ email });
     if( !user ){
-      console.log("User not Found");
       //If the user isn't found in the database, return a message
       return done(null, false, { message : 'User not found'});
     }
-    console.log("User Found");
 
-
-    // console.log(userx);
     //Validate password and make sure it matches with the corresponding hash stored in the database
     //If the passwords match, it returns a value of true.
     const validate = await user.isValidPassword(password);
     if( !validate ){
-      console.log("User not Validated");
       return done(null, false, { message : 'Wrong Password'});
     }
-    console.log("User Validated");
 
     //Send the user information to the next middleware
     return done(null, user, { message : 'Logged in Successfully'});
   } catch (error) {
-    console.log("Login Failed");
     return done(error);
   }
 }));

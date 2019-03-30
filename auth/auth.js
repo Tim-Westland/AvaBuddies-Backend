@@ -9,11 +9,15 @@ const keys = require('../config/keys');
 //Create a passport middleware to handle user registration
 passport.use('signup', new localStrategy({
   usernameField : 'email',
-  passwordField : 'password'
+  passwordField : 'password',
 }, async (email, password, done) => {
     try {
-      //Save the information provided by the user to the the database
-      const user = await UserModel.create({ email, password });
+      var user = new UserModel({
+        email: email,
+        name: 'EMPTY',
+        password: password
+      });
+      await user.save();
       //Send the user information to the next middleware
       return done(null, user);
     } catch (error) {

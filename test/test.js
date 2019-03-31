@@ -11,36 +11,13 @@ var express = require('express');
 var indexRouter = require('../routes/index');
 var authRouter = require('../routes/auth');
 var userRouter = require('../routes/user');
-var secRouter = require('../routes/sec-route');
 
-mongoose.connect('mongodb://server:9T9F8QR9xzBo@ds121636.mlab.com:21636/avabuddies-backend-dev', {
-	useNewUrlParser: true
-});
+const authData = 'email=tim@dev.nl&password=dev';
 
 require('../auth/auth');
-
 var app = express();
-app.use( bodyParser.urlencoded({ extended : false }) );
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
-//Get the default connection
-var db = mongoose.connection;
 
-//Bind connection to error event (to get notification of connection errors)
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-});
-
-app.use('/auth', authRouter);
-
-app.use('/', passport.authenticate('jwt', {
-	session : false
-}), indexRouter );
-
-app.use('/user', passport.authenticate('jwt', {
-	session : false
-}), userRouter );
 
 
 function makeGetRequest(route, statusCode, done){
@@ -65,10 +42,49 @@ function makePostRequest(route, data, statusCode, done){
 			done(null, res);
 		});
 };
+describe('Database Tests', function() {
+	before(function (done) {
+		app.use( bodyParser.urlencoded({ extended : false }) );
+		app.use(express.json());
+		app.use(express.urlencoded({ extended: false }));
 
-describe('Auth', function(){
-	it('authenticated path should return an error when no token is used.', function(done) {
-		makePostRequest('/auth/login','email=simon@projectsoa.onmicrosoft.com&password=SamplePassword',200, done);
+		mongoose.connect('mongodb://server:9T9F8QR9xzBo@ds121636.mlab.com:21636/avabuddies-backend-dev', {
+			useNewUrlParser: true
+		});
 
+
+		//Get the default connection
+		var db = mongoose.connection;
+
+		//Bind connection to error event (to get notification of connection errors)
+		db.on('error', console.error.bind(console, 'connection error:'));
+		db.once('open', function() {
+			done();
+		});
+
+		app.use('/auth', authRouter);
+
+		app.use('/', passport.authenticate('jwt', {
+			session : false
+		}), indexRouter );
+
+		app.use('/user', passport.authenticate('jwt', {
+			session : false
+		}), userRouter );
+  });
+
+	describe('Auth', function(){
+		it('authenticated path should return an error when no token is used.', function(done) {
+			makePostRequest('/auth/login',authData,200, done);
+
+		});
 	});
+
+
+	after(function(done){
+    mongoose.connection.db.dropDatabase(function(){
+      mongoose.connection.close(done);
+    });
+  });
+	
 });

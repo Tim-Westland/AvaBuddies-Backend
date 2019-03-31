@@ -5,42 +5,30 @@ const User = require('../models/user');
 
 //Displays information tailored according to the logged in user
 router.get('/profile', (req, res, next) => {
-  //We'll just send back the user details and the token
-  console.log(req.user);
-  User.
-  findOne({
+  //We'll just send back the user details
+  User.findOne({
     _id: req.user._id
-  }).
-  // select('_id title').
-  exec(function(err, user) {
+  }).exec(function(err, result) {
     res.json({
-      user : user,
+      user : result,
     })
   })
 });
 
 router.post('/updateprofile', (req,res)=>{
-  User.findOne({
-    _id: req.user._id
-  }).exec(function (err,user) {
-    user.aboutme = req.body.aboutme;
-    user.sharelocation = req.body.sharelocation;
+  User.updateOne({ _id: req.user._id },
+    { aboutme: req.body.aboutme,
+      sharelocation: req.body.sharelocation}).exec(function (err, result) {
+        res.json('success');
+      })
 
-
-
-    user.save();
-    res.json({status: 'success'})
-  })
 });
 
 router.post('/updateprofilepicture', (req,res)=>{
-  User.findOne({
-    _id: req.user._id
-  }).exec(function (err,user) {
-    user.image = req.body.image;
-    user.save();
-    res.json({status: 'success'})
-  })
+  User.updateOne({ _id: req.user._id }, { image: req.body.image})
+  .exec(function (err, result) {
+      res.json('success');
+    })
 });
 
 router.get('/list', (req,res) => {
@@ -51,18 +39,17 @@ router.get('/list', (req,res) => {
 
 router.delete('/destroy/:id', (req, res) => {
   var id = req.params.id;
-  User.findOne({
+  User.deleteOne({
     _id: id
-  }).remove().exec();
+  }).exec();
   res.json({status: 'success'})
 });
 
 router.get('/find/:keyword', (req, res) => {
-  var id = req.params.id;
-  User.find({
-    _id: id
-  }).remove().exec();
-  res.json({status: 'success'})
+  var keyword = req.params.keyword;
+  User.find( { 'name' : { '$regex' : keyword, '$options' : 'i' } } ).exec(function (err, result) {
+    res.json(result);
+  })
 });
 
 router.get('/switchrole', (req, res, next) => {

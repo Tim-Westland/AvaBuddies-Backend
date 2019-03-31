@@ -11,7 +11,6 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var userRouter = require('./routes/user');
-var secRouter = require('./routes/sec-route');
 
 var app = express();
 

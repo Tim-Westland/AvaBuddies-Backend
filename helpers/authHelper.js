@@ -47,11 +47,13 @@ module.exports = {
 
       var array = [];
       array.push(token.token.access_token);
-      array.push(await this.setEmail(req, res, token.token.access_token));
+      //array.push();
 
       var nameArray = [];
       nameArray.push("graph_access_token");
-      nameArray.push("user_email");
+      //nameArray.push("user_email");
+      
+
 
       this.setMultipleCookies(req, res, array, nameArray);
     } catch (error) {
@@ -81,7 +83,7 @@ module.exports = {
     });
   },
 
-  setEmail: async function(req, res, graph_access_token) {
+  getEmail: async function(req, res, graph_access_token) {
     if (graph_access_token) {
       // Initialize Graph client
       const client = graph.Client.init({
@@ -93,7 +95,6 @@ module.exports = {
       try {
         // Get the 10 newest messages from inbox
         const result = await client.api("/me/mail").get();
-
         return result.value;
       } catch (err) {
         res.render("error", err);
@@ -101,18 +102,16 @@ module.exports = {
     }
   },
 
-  setMultipleCookies: function(req, res, array, nameArray) {
+  setMultipleCookies: function(req, res, arr1, arr2) {
     var i = 0;
     var currentCookie = "";
-
-    array.forEach(element => {
-      currentCookie = cookie.serialize(nameArray[i], element.toString(), {
+    arr1.forEach(element => {
+      currentCookie = cookie.serialize(arr2[i], element, {
         httpOnly: true,
         path: "/",
         signed: true
       });
-
-      if (i == 0) {
+      if (req.get('Set-Cookie') == undefined) {
         res.setHeader("Set-Cookie", currentCookie);
       } else {
         res.append("Set-Cookie", currentCookie);
@@ -122,6 +121,7 @@ module.exports = {
   },
 
   getCookies: async function(cookies, res) {
+    console.log(cookies);
     var cookiesList = this.parseCookies(cookies);
     return cookiesList;
   },

@@ -9,7 +9,7 @@ router.get("/", async function(req, res, next) {
 
   cookiesList = authHelper.getCookies(req.headers.cookie, res);
   parms.email = cookiesList.email;
-  console.log(result);
+  console.log(parms.email);
   res.render("dashboard", parms);
 });
 

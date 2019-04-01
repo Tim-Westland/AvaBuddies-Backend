@@ -1,5 +1,7 @@
 const simpleOauthModule = require("simple-oauth2");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const graph = require("@microsoft/microsoft-graph-client");
+const cookie = require('cookie');
 
 var clientId = "3ad76aa6-6405-4d8b-bfc6-b5050fa71aaa";
 var clientSecret = ":-*6]?X*.{-/={*?]+^?_?I]?4d$+L;|*)=%*=()&";
@@ -41,19 +43,17 @@ module.exports = {
 
     try {
       const result = await oauth2.authorizationCode.getToken(options);
-
-      console.log("The resulting token: ", result);
-
       const token = oauth2.accessToken.create(result);
 
-      const user = jwt.decode(token.token.id_token);
+      var array = [];
+      array.push(token.token.access_token);
+      array.push(await this.setEmail(req, res, token.token.access_token));
 
-      // Save the access token in a cookie
-      res.cookie("graph_access_token", token.token.access_token, {
-        maxAge: 3600000,
-        httpOnly: true
-      });
+      var nameArray = [];
+      nameArray.push("graph_access_token");
+      nameArray.push("user_email");
 
+      this.setMultipleCookies(req, res, array, nameArray);
     } catch (error) {
       console.error("Access Token Error", error.message);
       return res.status(500).json("Authentication failed");
@@ -81,27 +81,61 @@ module.exports = {
     });
   },
 
-  async getAccessToken(cookies, res) {
-    var cookiesList = this.parseCookies(cookies);
+  setEmail: async function(req, res, graph_access_token) {
+    if (graph_access_token) {
+      // Initialize Graph client
+      const client = graph.Client.init({
+        authProvider: done => {
+          done(null, graph_access_token);
+        }
+      });
 
-    // Do we have an access token cached?
-    console.log(cookiesList.graph_access_token);
-    let token = cookiesList.graph_access_token;
-  
-    return token;
+      try {
+        // Get the 10 newest messages from inbox
+        const result = await client.api("/me/mail").get();
+
+        return result.value;
+      } catch (err) {
+        res.render("error", err);
+      }
+    }
   },
 
-  parseCookies (request) {
-    var list = {},
-        rc = request;
+  setMultipleCookies: function(req, res, array, nameArray) {
+    var i = 0;
+    var currentCookie = "";
 
-    rc && rc.split(';').forEach(function( cookie ) {
-        var parts = cookie.split('=');
-        list[parts.shift().trim()] = decodeURI(parts.join('='));
+    array.forEach(element => {
+      currentCookie = cookie.serialize(nameArray[i], element.toString(), {
+        httpOnly: true,
+        path: "/",
+        signed: true
+      });
+
+      if (i == 0) {
+        res.setHeader("Set-Cookie", currentCookie);
+      } else {
+        res.append("Set-Cookie", currentCookie);
+      }
+      i++;
     });
+  },
+
+  getCookies: async function(cookies, res) {
+    var cookiesList = this.parseCookies(cookies);
+    return cookiesList;
+  },
+
+  parseCookies(request) {
+    var list = {},
+      rc = request;
+
+    rc &&
+      rc.split(";").forEach(function(cookie) {
+        var parts = cookie.split("=");
+        list[parts.shift().trim()] = decodeURI(parts.join("="));
+      });
 
     return list;
-}
+  }
 };
-
-

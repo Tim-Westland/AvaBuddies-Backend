@@ -3,6 +3,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
 const authHelper = require('../helpers/authHelper');
+const request = require("request");
 
 const router = express.Router();
 
@@ -19,9 +20,9 @@ router.post('/signup', passport.authenticate('signup', {
 });
 
 router.post('/login', async (req, res, next) => {
-  
-  passport.authenticate('login', async (err, user, info) => {
+    passport.authenticate('login', async (err, user, info) => {
     try {
+      console.log(user);
       if (err || !user) {
         const error = new Error('An Error occured')
         return next(error);
@@ -43,21 +44,41 @@ router.post('/login', async (req, res, next) => {
 });
 
 router.get('/', function(req, res, next) {
-  res.render('auth', { title: 'Express', authUrl: authHelper.getAuthUrl()});
+  res.redirect(authHelper.getAuthUrl());
 });
 
 router.get('/authorize', function(req, res) {
   var authCode = req.query.code;
   if (authCode) {
-    console.log('');
-    console.log('Retrieved auth code in /authorize: ' + authCode);
+ 
+
     authHelper.getTokenFromCode(authCode, req, res);
-    res.redirect('/');
+    cookiesList = authHelper.getCookies(req.headers.cookie, res);
+
+    var options = { method: 'POST',
+      url: 'http://localhost:3000/auth/login',
+      headers: 
+       {'Postman-Token': '8905252b-bd96-4411-beca-c9c58526f142',
+        'cache-control': 'no-cache',
+        'Content-Type': 'application/x-www-form-urlencoded' },
+      form: 
+       { email: cookiesList.email,
+         password: keys.password,
+         undefined: undefined } };
+    
+    request(options, function (error, response, body) {
+      if (error) throw new Error(error);
+    
+      console.log(body);
+    });
+    
+
+    res.redirect('/index');
   }
   else {
     // redirect to home
     console.log('/authorize called without a code parameter, redirecting to login');
-    res.redirect('/auth');
+    res.redirect('/');
   }
 });
 

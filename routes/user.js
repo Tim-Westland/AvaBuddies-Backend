@@ -33,7 +33,9 @@ router.post('/updateprofilepicture', (req,res)=>{
 
 router.get('/list', (req,res) => {
   User.find().exec(function (err, result) {
-    res.json(result);
+    res.json({
+        users : result
+    });
   })
 });
 

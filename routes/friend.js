@@ -22,6 +22,7 @@ router.get("/allconnections", function(req, res, next) {
 
 router.post("/dorequest", function(req,res,next){
     if(!req.body.friend) return res.status(422).json({message:"missing friend id in body"});
+    if(req.body.friend === req.user._id) return res.status(422).json({message:"You can't add yourselve as a friend. :D"});
     var friends = new friend({friend1:req.user._id, friend2: req.body.friend, confirmed: false});
     friends.save(function (err) {
        if (err) return res.status(500).json({message:"error while saving "+err});

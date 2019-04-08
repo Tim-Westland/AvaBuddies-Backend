@@ -51,7 +51,15 @@ router.post("/acceptrequest/:id", function(req,res,next){
 
 
 router.post("/denyrequest/:id", function(req,res,next){
-    friend.deleteOne({friend1: req.params.id, confirmed: false}).exec(function (err) {
+    friend.deleteOne({friend1: req.params.id, friend2: req.user._id, confirmed: false}).exec(function (err) {
+        if(err) return res.status(500).json({message: "could not find request "+err});
+        res.json({message:"success"});
+    });
+});
+
+
+router.post("/cancelrequest/:id", function(req,res,next){
+    friend.deleteOne({friend2: req.params.id, friend1: req.user._id, confirmed: false}).exec(function (err) {
         if(err) return res.status(500).json({message: "could not find request "+err});
         res.json({message:"success"});
     });

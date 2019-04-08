@@ -20,7 +20,9 @@ router.get("/user/:id", (req,res,next)=>{
     if(err) return res.status(500).json({message:"could not find user."});
 
     var info = user;
-    delete info.
+    delete info.password;
+    delete info.isAdmin;
+    res.json({user:info});
   })
 });
 

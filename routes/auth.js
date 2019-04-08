@@ -33,7 +33,7 @@ router.post('/signup', function(req, res) {
       sharelocation: shareLocation
     });
     user.save(function (err) {
-      if( err ) return next(error);
+      if( err ) return res.status(500).json({message:"an error occured "+err});
       res.json({
         message: 'Signup successful',
         user: user

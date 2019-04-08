@@ -15,6 +15,15 @@ router.get('/profile', (req, res, next) => {
   })
 });
 
+router.get("/user/:id", (req,res,next)=>{
+  User.findOne({_id:req.params.id}).exec(function (err, result) {
+    if(err) return res.status(500).json({message:"could not find user."});
+
+    var info = user;
+    delete info.
+  })
+});
+
 router.post('/updateprofile', (req,res)=>{
   User.updateOne({ _id: req.user._id },
     { aboutme: req.body.aboutme,

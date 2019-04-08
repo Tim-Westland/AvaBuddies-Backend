@@ -7,12 +7,17 @@ const bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var passport = require('passport');
 var logger = require('morgan');
+var swaggerUi = require('swagger-ui-express'),
+    swaggerDocument = require('./swagger.json');
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var userRouter = require('./routes/user');
+var friendRouter = require('./routes/friend');
 
 var app = express();
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 
 require('./auth/auth');
 
@@ -31,6 +36,7 @@ db.once('open', function() {
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
+app.set('Access-Control-Allow-Origin');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -48,6 +54,13 @@ app.use('/', passport.authenticate('jwt', {
 app.use('/user', passport.authenticate('jwt', {
   session : false
 }), userRouter );
+
+app.use('/friend', passport.authenticate('jwt', {
+  session:false
+}), friendRouter);
+
+
+
 
 
 app.use(function(req, res, next) {

@@ -1,11 +1,11 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Swagger Petstore",
-    "description": "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters.",
-    "termsOfService": "http://swagger.io/terms/",
+    "title": "Avabuddies backend",
+    "description": "This is the backend for the avabuddies iOS and Android app",
+    "termsOfService": "https://avabuddies.nl/terms/",
     "contact": {
-      "email": "apiteam@swagger.io"
+      "email": "info@avanbuddies.nl"
     },
     "license": {
       "name": "Apache 2.0",
@@ -13,41 +13,61 @@
     },
     "version": "1.0.0"
   },
-  "externalDocs": {
-    "description": "Find out more about Swagger",
-    "url": "http://swagger.io"
-  },
   "servers": [
     {
-      "url": "https://petstore.swagger.io/v2"
+      "url": "https://dev.avabuddies.nl/"
     },
     {
-      "url": "http://petstore.swagger.io/v2"
+      "url": "https://www.avabuddies.nl"
+    },
+    {
+      "url": "http://localhost:3000"
     }
   ],
   "tags": [
     {
-      "name": "pet",
-      "description": "Everything about your Pets",
-      "externalDocs": {
-        "description": "Find out more",
-        "url": "http://swagger.io"
-      }
-    },
-    {
-      "name": "store",
-      "description": "Access to Petstore orders"
+      "name": "auth",
+      "description": "Everything related to authentication"
     },
     {
       "name": "user",
-      "description": "Operations about user",
-      "externalDocs": {
-        "description": "Find out more about our store",
-        "url": "http://swagger.io"
-      }
+      "description": "Methods to modify your account"
+    },
+    {
+      "name": "friend",
+      "description": "Methods to make friends, see your friends and accept friend requests"
     }
   ],
   "paths": {
+    "/auth/signup": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register a new user.",
+        "operationId": "signup",
+        "requestBody": {
+          "description": "User parameters that need to be registered.",
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "signup sucessful",
+            "content": {}
+          },
+          "500": {
+            "description": "error while saving user"
+          }
+        }
+      }
+    },
     "/pet": {
       "put": {
         "tags": [
@@ -903,6 +923,32 @@
   },
   "components": {
     "schemas": {
+      "RegisterUser": {
+        "required": [
+          "email",
+          "name",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "steve@avanade.nl"
+          },
+          "name": {
+            "type": "string",
+            "example": "steve"
+          },
+          "password": {
+            "type": "string",
+            "example": "secretpassword"
+          },
+          "sharelocation": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
       "Order": {
         "type": "object",
         "properties": {

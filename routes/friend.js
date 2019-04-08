@@ -29,12 +29,31 @@ router.post("/dorequest", function(req,res,next){
     res.json({message: "success"});
 });
 
-router.post("/friends", function(req,res,next){
+router.get("/friends", function(req,res,next){
     friend.find({$or:[{friend1: req.user._id},{friend2:req.user._id}],confirmed: true}).exec( function (err, result) {
         if(err) return res.status(500).json({message:err});
         res.json({friends: result});
     });
 
+});
+
+router.post("/acceptrequest/:id", function(req,res,next){
+    friend.findOne({friend1: req.params.id, confirmed: false}).exec(function (err, result) {
+        if(err) return res.status(500).json({message: "could not find request "+err});
+        result.confirmed = true;
+        result.save(function (err) {
+           if(err)  return res.status(500).json({message:"error while saving "+err});
+       });
+        res.json({message:"success"});
+    });
+});
+
+
+router.post("/denyrequest/:id", function(req,res,next){
+    friend.deleteOne({friend1: req.params.id, confirmed: false}).exec(function (err) {
+        if(err) return res.status(500).json({message: "could not find request "+err});
+        res.json({message:"success"});
+    });
 });
 
 

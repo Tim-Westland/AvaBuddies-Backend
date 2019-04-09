@@ -40,7 +40,7 @@ router.get("/friends", function(req,res,next){
 
 router.post("/acceptrequest", function(req,res,next){
     if(!req.body.friend) return res.status(422).json({message:"missing friend id in body"});
-    friend.findOne({friend1: req.body.friend, confirmed: false}).exec(function (err, result) {
+    friend.findOne({friend1: req.body.friend, friend2: req.user._id, confirmed: false}).exec(function (err, result) {
         if(err) return res.status(500).json({message: "could not find request "+err});
         result.confirmed = true;
         result.save(function (err) {
@@ -52,13 +52,17 @@ router.post("/acceptrequest", function(req,res,next){
 
 router.post("/validaterequest", function(req,res,next){
     if(!req.body.friend) return res.status(422).json({message:"missing friend id in body"});
-    friend.findOne({friend1: req.body.friend, validated: false}).exec(function (err, result) {
+    friend.findOne({friend1: req.user._id, friend2: req.body.friend, validated: false}).exec(function (err, result) {
         if(err) return res.status(500).json({message: "could not find request "+err});
-        result.validated = true;
-        result.save(function (err) {
-            if(err)  return res.status(500).json({message:"error while saving "+err});
-        });
-        res.json({message:"success"});
+        if (result != null) {
+            result.validated = true;
+            result.save(function (err) {
+                if (err) return res.status(500).json({message: "error while saving " + err});
+            });
+            res.json({message: "success"});
+        } else {
+            res.status(500).json({message: "could not modify request " + err});
+        }
     });
 });
 

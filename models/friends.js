@@ -15,6 +15,11 @@ const FriendSchema = new Schema({
         type:Boolean,
         required: true,
         default: false
+    },
+    validated: {
+        type:Boolean,
+        required: true,
+        default: false
     }
 
 });

@@ -52,6 +52,7 @@ router.post('/updateprofile', (req, res) => {
 router.post('/updateprofilepicture', (req, res) => {
     User.updateOne({_id: req.user._id}, {image: req.body.image})
         .exec(function (err, result) {
+            if (err) return res.json({message: message.error + err});
             res.json({message: message.success});
         })
 });

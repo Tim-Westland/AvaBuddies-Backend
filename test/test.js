@@ -77,7 +77,7 @@ function makePostRequest(route, data, statusCode, done) {
         });
 };
 
-describe('Tests', function () {
+describe('Tests', function (done) {
     before(function (done) {
 
         mongoose.connect(process.env.TESTDATABASE, {
@@ -129,7 +129,10 @@ describe('Tests', function () {
             });
 
             it('login should return an token when logged in with valid credentials.', function (done) {
-                makePostRequest('/auth/login', 'email=tim@dev.nl&password=test', 200, done);
+                makePostRequest('/auth/login', 'email=tim@dev.nl&password=test', 200, function (err, res) {
+                    JSON.parse(res.text).should.have.property("token");
+                    done(null,null);
+                });
             });
 
             it('login should return an 401 error when invalid credentials are used.', function (done) {
@@ -142,11 +145,7 @@ describe('Tests', function () {
 
 
             after(function (done) {
-
-                UserModel.deleteOne({
-                    email: 'tim@dev.nl'
-                }).exec();
-                done(null, null);
+                UserModel.deleteOne({email: 'tim@dev.nl'}).exec(done);
             })
         });
 
@@ -157,11 +156,7 @@ describe('Tests', function () {
             });
 
             after(function (done) {
-
-                UserModel.deleteOne({
-                    email: 'bob@example.com'
-                }).exec();
-                done(null, null);
+                UserModel.deleteOne({email: 'bob@example.com'}).exec(done);
             });
 
             var token = '';
@@ -174,8 +169,8 @@ describe('Tests', function () {
                     sharelocation: true
                 });
                 user.save(function (err) {
-                    if (err) return next(error);
-                    done(null, null)
+                    if (err) return done(error,null);
+                    done(null,null)
                 });
 
             });
@@ -188,7 +183,11 @@ describe('Tests', function () {
                     if (res) {
                         var json = JSON.parse(res.text);
                         token = json.token;
-                        makeAuthGetRequest('/user/profile', token, 200, done);
+                        makeAuthGetRequest('/user/profile', token, 200, function (err, res) {
+                            res.body.should.be.a('object');
+                            res.body.user.should.have.property('name');
+                            done(null,null);
+                        });
                     }
                 });
 
@@ -198,8 +197,7 @@ describe('Tests', function () {
 
                 UserModel.deleteOne({
                     email: 'tim@dev.nl'
-                }).exec();
-                done(null, null);
+                }).exec(done);
             });
 
             before(function (done) {
@@ -235,11 +233,47 @@ describe('Tests', function () {
 
         });
 
+        describe('connections', function (done) {
+            before(function (done) {
+                var user = new UserModel({
+                    email: 'yoeri@connectiontests.nl',
+                    name: 'yoeri',
+                    password: 'kitty',
+                    sharelocation: true
+                });
+                user.save(function (err) {
+                    if (err) console.log(err);
+                    done(null, null)
+                });
+            });
+
+            it('should return a list of user ', function () {
+                makePostRequest('/auth/login', 'email=yoeri@connectiontests.nl&password=kitty', 200, function (err, res) {
+                    if (err) {
+                        console.log(err.text);
+                    }
+                    if (res) {
+                        var json = JSON.parse(res.text);
+                        token = json.token;
+                        makeAuthGetRequest('/user/list', token, 200, function (err, res) {
+                            res.body.users.should.be.a('array');
+
+                        });
+                    }
+                });
+            });
+
+            after(function (done) {
+                UserModel.deleteOne({email:'yoeri@connectiontests.nl'}).exec(done)
+            });
+        });
+
+
 
     });
-    console.log("test");
 
     after(function (done) {
         mongoose.connection.close(done);
     });
+
 });

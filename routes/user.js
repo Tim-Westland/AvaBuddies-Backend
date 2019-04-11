@@ -51,6 +51,7 @@ router.post('/updateprofilepicture', (req,res)=>{
 router.get('/list', (req,res) => {
   User.find().exec(function (err, result) {
     if(err) return res.json({message: message.error+err});
+    console.log(err);
     res.json({
         users : result
     });

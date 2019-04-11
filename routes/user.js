@@ -57,7 +57,16 @@ router.delete('/destroy/:id', (req, res) => {
       _id: req.user._id
     }).exec();
     res.json({status: 'success'});
-  }else{
+  }else if(req.user.isAdmin){
+    User.deleteOne({
+      _id: req.params.id
+    }).exec(function (err, res) {
+      if(err) return res.json({message: "an error occured: "+err});
+      res.json({status: 'success'});
+    });
+
+  }
+  else{
     res.json({status: 'failed'});
   }
 

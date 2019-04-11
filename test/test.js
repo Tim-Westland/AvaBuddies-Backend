@@ -131,7 +131,7 @@ describe('Tests', function (done) {
             it('login should return an token when logged in with valid credentials.', function (done) {
                 makePostRequest('/auth/login', 'email=tim@dev.nl&password=test', 200, function (err, res) {
                     JSON.parse(res.text).should.have.property("token");
-                    done(null,null);
+                    done(null, null);
                 });
             });
 
@@ -152,7 +152,7 @@ describe('Tests', function (done) {
         describe('Profile', function () {
 
             it('registration should return an userprofile with the given properties', function (done) {
-                makePostRequest('/auth/signup','email=bob@example.com&name=bob&password=testpassword&sharelocation=true', 200, done)
+                makePostRequest('/auth/signup', 'email=bob@example.com&name=bob&password=testpassword&sharelocation=true', 200, done)
             });
 
             after(function (done) {
@@ -169,8 +169,8 @@ describe('Tests', function (done) {
                     sharelocation: true
                 });
                 user.save(function (err) {
-                    if (err) return done(error,null);
-                    done(null,null)
+                    if (err) return done(error, null);
+                    done(null, null)
                 });
 
             });
@@ -186,7 +186,7 @@ describe('Tests', function (done) {
                         makeAuthGetRequest('/user/profile', token, 200, function (err, res) {
                             res.body.should.be.a('object');
                             res.body.user.should.have.property('name');
-                            done(null,null);
+                            done(null, null);
                         });
                     }
                 });
@@ -224,7 +224,7 @@ describe('Tests', function (done) {
                         token = json.token;
                         makeAuthGetRequest('/user/profile', token, 200, function (err, res) {
                             var profile = JSON.parse(res.text).user;
-                                makeAuthDeleteRequest('/user/destroy/'+profile._id, token, 200, done);
+                            makeAuthDeleteRequest('/user/destroy/' + profile._id, token, 200, done);
 
                         });
                     }
@@ -264,12 +264,9 @@ describe('Tests', function (done) {
             });
 
             after(function (done) {
-                UserModel.deleteOne({email:'yoeri@connectiontests.nl'}).exec(done)
+                UserModel.deleteOne({email: 'yoeri@connectiontests.nl'}).exec(done)
             });
         });
-
-
-
     });
 
     after(function (done) {

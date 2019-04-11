@@ -55,12 +55,15 @@ router.delete('/destroy/:id', (req, res) => {
   if(id===req.user._id) {
     User.deleteOne({
       _id: req.user._id
-    }).exec();
-    res.json({status: 'success'});
+    }).exec(function (err) {
+      if(err) return res.json({message: "an error occured: "+err});
+      res.json({status: 'success'});
+    });
+
   }else if(req.user.isAdmin){
     User.deleteOne({
       _id: req.params.id
-    }).exec(function (err, res) {
+    }).exec(function (err) {
       if(err) return res.json({message: "an error occured: "+err});
       res.json({status: 'success'});
     });
@@ -79,22 +82,27 @@ router.get('/find/:keyword', (req, res) => {
   })
 });
 
-router.get('/switchrole', (req, res, next) => {
-  User.
-  findOne({
-    _id: req.user._id
-  }).
-  // select('_id title').
-  exec(function(err, user) {
-    if(user.isAdmin === false){
-      user.isAdmin = true
-    }
-    else{
-      user.isAdmin = false
-    }
-    user.save();
-    res.json({status: 'success'})
-  })
+router.post('/switchrole', (req, res, next) => {
+  if(req.user.isAdmin){
+    User.
+    findOne({
+      _id: req.body.id
+    }).
+    // select('_id title').
+    exec(function(err, user) {
+      if(user.isAdmin === false){
+        user.isAdmin = true
+      }
+      else{
+        user.isAdmin = false
+      }
+      user.save();
+      res.json({status: 'success'})
+    })
+  }else{
+    res.status(401).json({message: "you must be an admin to use this api call"});
+  }
+
 });
 
 module.exports = router;

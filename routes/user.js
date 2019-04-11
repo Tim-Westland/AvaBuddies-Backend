@@ -52,10 +52,15 @@ router.get('/list', (req,res) => {
 
 router.delete('/destroy/:id', (req, res) => {
   var id = req.params.id;
-  User.deleteOne({
-    _id: id
-  }).exec();
-  res.json({status: 'success'})
+  if(id===req.user._id) {
+    User.deleteOne({
+      _id: req.user._id
+    }).exec();
+    res.json({status: 'success'});
+  }else{
+    res.json({status: 'failed'});
+  }
+
 });
 
 router.get('/find/:keyword', (req, res) => {
@@ -72,7 +77,7 @@ router.get('/switchrole', (req, res, next) => {
   }).
   // select('_id title').
   exec(function(err, user) {
-    if(user.isAdmin == false){
+    if(user.isAdmin === false){
       user.isAdmin = true
     }
     else{

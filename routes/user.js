@@ -50,6 +50,7 @@ router.post('/updateprofilepicture', (req,res)=>{
 
 router.get('/list', (req,res) => {
   User.find().exec(function (err, result) {
+    if(err) return res.json({message: message.error+err});
     res.json({
         users : result
     });
@@ -73,12 +74,10 @@ router.delete('/destroy/:id', (req, res) => {
       if(err) return res.json({message: message.error+err});
       res.json({message:message.success});
     });
-
   }
   else{
     res.json({message: message.unauthorized});
   }
-
 });
 
 router.get('/find/:keyword', (req, res) => {

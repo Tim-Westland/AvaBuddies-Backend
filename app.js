@@ -15,6 +15,8 @@ var authRouter = require('./routes/auth');
 var userRouter = require('./routes/user');
 var friendRouter = require('./routes/friend');
 
+const message = require('./config/errorMessages');
+
 var app = express();
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -46,6 +48,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use( bodyParser.urlencoded({ extended : false }) );
 
 app.use('/auth', authRouter);
+
 
 app.use('/', passport.authenticate('jwt', {
   session : false

@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
-//Lets say the route below is very sensitive and we want only authorized users to have access
+const message = require('../config/errorMessages');
 
-//Displays information tailored according to the logged in user
 router.get('/profile', (req, res, next) => {
-  //We'll just send back the user details
   User.findOne({
     _id: req.user._id
   }).exec(function(err, result) {
@@ -26,11 +24,19 @@ router.get("/user/:id", (req,res,next)=>{
   })
 });
 
+router.post('updateuser', (req,res)=>{
+  if(req.user.isAdmin){
+
+  }else{
+    res.json({message: message.noAdmin});
+  }
+});
+
 router.post('/updateprofile', (req,res)=>{
   User.updateOne({ _id: req.user._id },
     { aboutme: req.body.aboutme,
       sharelocation: req.body.sharelocation}).exec(function (err, result) {
-        res.json('success');
+        res.json({message:message.success});
       })
 
 });
@@ -38,7 +44,7 @@ router.post('/updateprofile', (req,res)=>{
 router.post('/updateprofilepicture', (req,res)=>{
   User.updateOne({ _id: req.user._id }, { image: req.body.image})
   .exec(function (err, result) {
-      res.json('success');
+    res.json({message:message.success});
     })
 });
 
@@ -56,21 +62,21 @@ router.delete('/destroy/:id', (req, res) => {
     User.deleteOne({
       _id: req.user._id
     }).exec(function (err) {
-      if(err) return res.json({message: "an error occured: "+err});
-      res.json({status: 'success'});
+      if(err) return res.json({message: message.error+err});
+      res.json({message:message.success});
     });
 
   }else if(req.user.isAdmin){
     User.deleteOne({
       _id: req.params.id
     }).exec(function (err) {
-      if(err) return res.json({message: "an error occured: "+err});
-      res.json({status: 'success'});
+      if(err) return res.json({message: message.error+err});
+      res.json({message:message.success});
     });
 
   }
   else{
-    res.json({status: 'failed'});
+    res.json({message: message.unauthorized});
   }
 
 });
@@ -90,17 +96,12 @@ router.post('/switchrole', (req, res, next) => {
     }).
     // select('_id title').
     exec(function(err, user) {
-      if(user.isAdmin === false){
-        user.isAdmin = true
-      }
-      else{
-        user.isAdmin = false
-      }
+      user.isAdmin = !user.isAdmin;
       user.save();
-      res.json({status: 'success'})
+      res.json({message:message.success});
     })
   }else{
-    res.status(401).json({message: "you must be an admin to use this api call"});
+    res.status(401).json({message: message.noAdmin});
   }
 
 });

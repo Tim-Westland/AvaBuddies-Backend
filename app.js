@@ -17,6 +17,7 @@ var friendRouter = require('./routes/friend');
 
 var app = express();
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.disable('etag');
 
 
 require('./auth/auth');

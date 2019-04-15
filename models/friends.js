@@ -12,12 +12,12 @@ const FriendSchema = new Schema({
         required: true
     },
     confirmed: {
-        type:Boolean,
+        type: Boolean,
         required: true,
         default: false
     },
     validated: {
-        type:Boolean,
+        type: Boolean,
         required: true,
         default: false
     }

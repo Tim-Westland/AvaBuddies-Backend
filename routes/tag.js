@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Tag = require('../models/tag');
-const UserTag = require('../models/usertag')
 const mongoose = require('mongoose');
 
 
@@ -32,7 +31,7 @@ router.post('/create', isAdmin, function (req, res, next) {
 });
 
 router.delete('/destroy', isAdmin, function (req, res, next) {
-  UserModel.deleteOne({
+  Tag.deleteOne({
       _id: req.body.tag
   }).exec(done);
 });

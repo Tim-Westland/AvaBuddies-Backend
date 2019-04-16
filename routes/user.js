@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
+const Tag = require('../models/tag');
 const message = require('../config/errorMessages');
+const mongoose = require('mongoose');
+
 
 router.get('/profile', (req, res, next) => {
     User.findOne({
         _id: req.user._id
-    }).exec(function (err, result) {
+    })
+    .populate('tags')
+    .select('-password')
+    .exec(function (err, result) {
         res.json({
             user: result,
         })
@@ -14,7 +20,10 @@ router.get('/profile', (req, res, next) => {
 });
 
 router.get("/user/:id", (req, res, next) => {
-    User.findOne({_id: req.params.id}).exec(function (err, result) {
+    User.findOne({_id: req.params.id})
+    .populate('tags')
+    .select('-password')
+    .exec(function (err, result) {
         if (err) return res.status(500).json({message: "could not find user."});
 
         var info = user;
@@ -39,13 +48,24 @@ router.post('updateuser', (req, res) => {
 });
 
 router.post('/updateprofile', (req, res) => {
+
+    tagsID = JSON.parse(req.body.tags)
+
+    tags = [];
+    for (const [key, value] of Object.entries(tagsID)) {
+      tags.push({_id: mongoose.Types.ObjectId(value)});
+    }
+    console.log(tags);
+
     User.updateOne({_id: req.user._id},
         {
             aboutme: req.body.aboutme,
-            sharelocation: req.body.sharelocation
+            sharelocation: req.body.sharelocation,
+            tags: tags
         }).exec(function (err, result) {
         res.json({message: message.success});
     })
+
 
 });
 
@@ -58,7 +78,10 @@ router.post('/updateprofilepicture', (req, res) => {
 });
 
 router.get('/list', (req, res) => {
-    User.find().exec(function (err, result) {
+    User.find()
+    .populate('tags')
+    .select('-password')
+    .exec(function (err, result) {
         if (err) return res.json({message: message.error + err});
         console.log(err);
         res.json({

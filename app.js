@@ -14,6 +14,7 @@ var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var userRouter = require('./routes/user');
 var friendRouter = require('./routes/friend');
+var tagRouter = require('./routes/tag');
 
 const message = require('./config/errorMessages');
 
@@ -47,6 +48,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
+
 app.use('/auth', authRouter);
 
 
@@ -61,6 +63,10 @@ app.use('/user', passport.authenticate('jwt', {
 app.use('/friend', passport.authenticate('jwt', {
   session:false
 }), friendRouter);
+
+app.use('/tag', passport.authenticate('jwt', {
+  session:false
+}), tagRouter);
 
 
 

@@ -30,6 +30,11 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false
     },
+    isPrivate: {
+      type: Boolean,
+      default: false
+    },
+    tags: [{ type: Schema.Types.ObjectId, ref: 'Tag' }],
     image: {
         type: String,
         default: ''

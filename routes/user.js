@@ -49,10 +49,8 @@ router.post('updateuser', (req, res) => {
 
 router.post('/updateprofile', (req, res) => {
 
-    tagsID = JSON.parse(req.body.tags)
-
     tags = [];
-    for (const [key, value] of Object.entries(tagsID)) {
+    for (const [key, value] of Object.entries(req.body.tags)) {
       tags.push({_id: mongoose.Types.ObjectId(value)});
     }
     console.log(tags);

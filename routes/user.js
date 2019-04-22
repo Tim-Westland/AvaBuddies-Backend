@@ -1,113 +1,141 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
-//Lets say the route below is very sensitive and we want only authorized users to have access
+const Tag = require('../models/tag');
+const message = require('../config/errorMessages');
+const mongoose = require('mongoose');
 
-//Displays information tailored according to the logged in user
+
 router.get('/profile', (req, res, next) => {
-  //We'll just send back the user details
-  User.findOne({
-    _id: req.user._id
-  }).exec(function(err, result) {
-    res.json({
-      user: result,
+    User.findOne({
+        _id: req.user._id
     })
-  })
+    .populate('tags')
+    .select('-password')
+    .exec(function (err, result) {
+        res.json({
+            user: result,
+        })
+    })
 });
 
-router.get("/user/:id", (req, res, next) => {
-  User.findOne({
-    _id: req.params.id
-  }).exec(function(err, result) {
-    if (err) return res.status(500).json({
-      message: "could not find user."
-    });
+router.get("/:id", (req, res, next) => {
+    User.findOne({_id: req.params.id})
+    .populate('tags')
+    .select('-password')
+    .exec(function (err, result) {
+        if (err) return res.status(500).json({message: "could not find user."});
 
-    var info = result;
-    delete info.password;
-    delete info.isAdmin;
-    res.json({
-      result: info
-    });
-  })
+        var info = result;
+        delete info.password;
+        delete info.isAdmin;
+        res.json({user: info});
+    })
+});
+
+router.post('updateuser', (req, res) => {
+    var fields = {}
+    if (req.body.aboutme) {
+      fields.aboutme = req.body.aboutme
+    }
+    if (req.body.sharelocation) {
+      fields.sharelocation = req.body.sharelocation
+    }
+
+    if (req.user.isAdmin) {
+        User.updateOne({_id: req.body.id},
+            fields).exec(function (err, result) {
+            res.json({message: message.success});
+        })
+    } else {
+        res.json({message: message.noAdmin});
+    }
 });
 
 router.post('/updateprofile', (req, res) => {
 
-  var fields = {}
-  if (req.body.aboutme) {
-    fields.aboutme = req.body.aboutme
-  }
-  if (req.body.sharelocation) {
-    fields.sharelocation = req.body.sharelocation
-  }
+    tags = [];
+    for (const [key, value] of Object.entries(req.body.tags)) {
+      tags.push({_id: mongoose.Types.ObjectId(value)});
+    }
+    console.log(tags);
 
-  User.updateOne({
-      _id: req.user._id
-    },
-    fields).exec(function(err, result) {
-    res.json('success');
-  })
+    User.updateOne({_id: req.user._id},
+        {
+            aboutme: req.body.aboutme,
+            sharelocation: req.body.sharelocation,
+            tags: tags
+        }).exec(function (err, result) {
+        res.json({message: message.success});
+    })
+
+
 });
 
 router.post('/updateprofilepicture', (req, res) => {
-  User.updateOne({
-      _id: req.user._id
-    }, {
-      image: req.body.image
-    })
-    .exec(function(err, result) {
-      res.json('success');
-    })
+    User.updateOne({_id: req.user._id}, {image: req.body.image})
+        .exec(function (err, result) {
+            if (err) return res.json({message: message.error + err});
+            res.json({message: message.success});
+        })
 });
 
 router.get('/list', (req, res) => {
-  User.find().exec(function(err, result) {
-    res.json({
-      users: result
-    });
-  })
+    User.find()
+    .populate('tags')
+    .select('-password')
+    .exec(function (err, result) {
+        if (err) return res.json({message: message.error + err});
+        console.log(err);
+        res.json({
+            users: result
+        });
+    })
 });
 
 router.delete('/destroy/:id', (req, res) => {
-  var id = req.params.id;
-  User.deleteOne({
-    _id: id
-  }).exec();
-  res.json({
-    status: 'success'
-  })
+    var id = req.params.id;
+    if (id === req.user._id) {
+        User.deleteOne({
+            _id: req.user._id
+        }).exec(function (err) {
+            if (err) return res.json({message: message.error + err});
+            res.json({message: message.success});
+        });
+
+    } else if (req.user.isAdmin) {
+        User.deleteOne({
+            _id: req.params.id
+        }).exec(function (err) {
+            if (err) return res.json({message: message.error + err});
+            res.json({message: message.success});
+        });
+    } else {
+        res.json({message: message.unauthorized});
+    }
 });
 
 router.get('/find/:keyword', (req, res) => {
-  var keyword = req.params.keyword;
-  User.find({
-    'name': {
-      '$regex': keyword,
-      '$options': 'i'
-    }
-  }).exec(function(err, result) {
-    res.json(result);
-  })
+    var keyword = req.params.keyword;
+    User.find({'name': {'$regex': keyword, '$options': 'i'}}).exec(function (err, result) {
+        res.json(result);
+    })
 });
 
-router.get('/switchrole', (req, res, next) => {
-  User.
-  findOne({
-    _id: req.user._id
-  }).
-  // select('_id title').
-  exec(function(err, user) {
-    if (user.isAdmin == false) {
-      user.isAdmin = true
+router.post('/switchrole', (req, res, next) => {
+    if (req.user.isAdmin) {
+        User.findOne({
+            _id: req.body.id
+        }).// select('_id title').
+        exec(function (err, user) {
+            user.isAdmin = !user.isAdmin;
+            user.save();
+            res.json({message: message.success});
+        })
     } else {
-      user.isAdmin = false
+        res.status(401).json({message: message.noAdmin});
     }
-    user.save();
-    res.json({
-      status: 'success'
-    })
-  })
+
 });
 
 module.exports = router;

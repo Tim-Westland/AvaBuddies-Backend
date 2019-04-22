@@ -14,10 +14,13 @@ var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var userRouter = require('./routes/user');
 var friendRouter = require('./routes/friend');
+var tagRouter = require('./routes/tag');
+
+const message = require('./config/errorMessages');
 
 var app = express();
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
+app.disable('etag');
 
 require('./auth/auth');
 
@@ -40,12 +43,14 @@ app.set('Access-Control-Allow-Origin');
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use( bodyParser.urlencoded({ extended : false }) );
+
 
 app.use('/auth', authRouter);
+
 
 app.use('/', passport.authenticate('jwt', {
   session : false
@@ -58,6 +63,10 @@ app.use('/user', passport.authenticate('jwt', {
 app.use('/friend', passport.authenticate('jwt', {
   session:false
 }), friendRouter);
+
+app.use('/tag', passport.authenticate('jwt', {
+  session:false
+}), tagRouter);
 
 
 

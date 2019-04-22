@@ -35,12 +35,28 @@ router.get("/:id", (req, res, next) => {
 
 router.post('updateuser', (req, res) => {
     var fields = {}
+    if (req.body.name) {
+      fields.name = req.body.name
+    }
     if (req.body.aboutme) {
       fields.aboutme = req.body.aboutme
     }
     if (req.body.sharelocation) {
       fields.sharelocation = req.body.sharelocation
     }
+    if (req.body.isAdmin) {
+      fields.isAdmin = req.body.isAdmin
+    }
+    if (req.body.isPrivate) {
+      fields.isPrivate = req.body.isPrivate
+    }
+    if (req.body.sharelocation) {
+      fields.sharelocation = req.body.sharelocation
+    }
+    if (req.body.image) {
+      fields.image = req.body.image
+    }
+
 
     if (req.user.isAdmin) {
         User.updateOne({_id: req.body.id},
@@ -58,7 +74,7 @@ router.post('/updateprofile', (req, res) => {
     for (const [key, value] of Object.entries(req.body.tags)) {
       tags.push({_id: mongoose.Types.ObjectId(value)});
     }
-    console.log(tags);
+
 
     User.updateOne({_id: req.user._id},
         {

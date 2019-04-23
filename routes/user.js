@@ -19,20 +19,6 @@ router.get('/profile', (req, res, next) => {
     })
 });
 
-router.get("/:id", (req, res, next) => {
-    User.findOne({_id: req.params.id})
-    .populate('tags')
-    .select('-password')
-    .exec(function (err, result) {
-        if (err) return res.status(500).json({message: "could not find user."});
-
-        var info = result;
-        delete info.password;
-        delete info.isAdmin;
-        res.json({user: info});
-    })
-});
-
 router.post('updateuser', (req, res) => {
     var fields = {}
     if (req.body.name) {
@@ -152,6 +138,21 @@ router.post('/switchrole', (req, res, next) => {
         res.status(401).json({message: message.noAdmin});
     }
 
+});
+
+
+router.get("/:id", (req, res, next) => {
+    User.findOne({_id: req.params.id})
+    .populate('tags')
+    .select('-password')
+    .exec(function (err, result) {
+        if (err) return res.status(500).json({message: "could not find user."});
+
+        var info = result;
+        delete info.password;
+        delete info.isAdmin;
+        res.json({user: info});
+    })
 });
 
 module.exports = router;

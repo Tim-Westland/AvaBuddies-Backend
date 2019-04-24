@@ -19,7 +19,7 @@ router.get('/profile', (req, res, next) => {
     })
 });
 
-router.post('updateuser', (req, res) => {
+router.post('/updateuser', (req, res) => {
     var fields = {}
     if (req.body.name) {
       fields.name = req.body.name
@@ -36,14 +36,7 @@ router.post('updateuser', (req, res) => {
     if (req.body.isPrivate) {
       fields.isPrivate = req.body.isPrivate
     }
-    if (req.body.sharelocation) {
-      fields.sharelocation = req.body.sharelocation
-    }
-    if (req.body.image) {
-      fields.image = req.body.image
-    }
-
-
+    
     if (req.user.isAdmin) {
         User.updateOne({_id: req.body.id},
             fields).exec(function (err, result) {
@@ -66,6 +59,7 @@ router.post('/updateprofile', (req, res) => {
         {
             aboutme: req.body.aboutme,
             sharelocation: req.body.sharelocation,
+            isPrivate: req.body.isPrivate,
             tags: tags
         }).exec(function (err, result) {
         res.json({message: message.success});

@@ -4,7 +4,8 @@ const UserModel = require('../models/user');
 const JWTstrategy = require('passport-jwt').Strategy;
 //We use this to extract the JWT sent by the user
 const ExtractJWT = require('passport-jwt').ExtractJwt;
-const keys = require('../config/keys');
+const dotenv = require('dotenv');
+const result = dotenv.config();
 
 //Create a passport middleware to handle user registration
 // passport.use('signup', new localStrategy({
@@ -57,7 +58,7 @@ passport.use('login', new localStrategy({
 //This verifies that the token sent by the user is valid
 passport.use(new JWTstrategy({
   //secret we used to sign our JWT
-  secretOrKey : keys.jwt.secret_key,
+  secretOrKey : process.env.TESTDATABASE,
   //we expect the user to send the token as a query paramater with the name 'secret_token'
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken()
   //jwtFromRequest : ExtractJWT.fromUrlQueryParameter('secret_token')

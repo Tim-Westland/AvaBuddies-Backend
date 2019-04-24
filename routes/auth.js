@@ -1,7 +1,8 @@
 const express = require('express');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-const keys = require('../config/keys');
+const dotenv = require('dotenv');
+const result = dotenv.config();
 const authHelper = require('../helpers/authHelper');
 const UserModel = require('../models/user');
 
@@ -43,7 +44,7 @@ router.post('/login', async (req, res, next) => {
                 //user password in the token so we pick only the email and id
                 const body = {_id: user._id, email: user.email, isAdmin: user.isAdmin};
                 //Sign the JWT token and populate the payload with the user email and id
-                const token = jwt.sign({user: body, expiresIn: '5'}, keys.jwt.secret_key, {expiresIn: '24h'});
+                const token = jwt.sign({user: body, expiresIn: '5'}, process.env.TESTDATABASE, {expiresIn: '24h'});
                 //Send back the token to the user
                 return res.json({token});
             });

@@ -19,27 +19,34 @@ router.get('/profile', (req, res, next) => {
     })
 });
 
-router.get("/user/:id", (req, res, next) => {
-    User.findOne({_id: req.params.id})
-    .populate('tags')
-    .select('-password')
-    .exec(function (err, result) {
-        if (err) return res.status(500).json({message: "could not find user."});
-
-        var info = user;
-        delete info.password;
-        delete info.isAdmin;
-        res.json({user: info});
-    })
-});
-
 router.post('updateuser', (req, res) => {
+    var fields = {}
+    if (req.body.name) {
+      fields.name = req.body.name
+    }
+    if (req.body.aboutme) {
+      fields.aboutme = req.body.aboutme
+    }
+    if (req.body.sharelocation) {
+      fields.sharelocation = req.body.sharelocation
+    }
+    if (req.body.isAdmin) {
+      fields.isAdmin = req.body.isAdmin
+    }
+    if (req.body.isPrivate) {
+      fields.isPrivate = req.body.isPrivate
+    }
+    if (req.body.sharelocation) {
+      fields.sharelocation = req.body.sharelocation
+    }
+    if (req.body.image) {
+      fields.image = req.body.image
+    }
+
+
     if (req.user.isAdmin) {
         User.updateOne({_id: req.body.id},
-            {
-                aboutme: req.body.aboutme,
-                sharelocation: req.body.sharelocation
-            }).exec(function (err, result) {
+            fields).exec(function (err, result) {
             res.json({message: message.success});
         })
     } else {
@@ -53,7 +60,7 @@ router.post('/updateprofile', (req, res) => {
     for (const [key, value] of Object.entries(req.body.tags)) {
       tags.push({_id: mongoose.Types.ObjectId(value)});
     }
-    console.log(tags);
+
 
     User.updateOne({_id: req.user._id},
         {
@@ -131,6 +138,21 @@ router.post('/switchrole', (req, res, next) => {
         res.status(401).json({message: message.noAdmin});
     }
 
+});
+
+
+router.get("/:id", (req, res, next) => {
+    User.findOne({_id: req.params.id})
+    .populate('tags')
+    .select('-password')
+    .exec(function (err, result) {
+        if (err) return res.status(500).json({message: "could not find user."});
+
+        var info = result;
+        delete info.password;
+        delete info.isAdmin;
+        res.json({user: info});
+    })
 });
 
 module.exports = router;

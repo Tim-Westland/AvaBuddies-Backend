@@ -13,6 +13,8 @@ router.get('/profile', (req, res, next) => {
     .populate('tags')
     .select('-password')
     .exec(function (err, result) {
+        // console.log('here');
+        // console.log(result);
         res.json({
             user: result,
         })

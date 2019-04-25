@@ -26,7 +26,9 @@ router.get('/list', function (req, res, next) {
 router.post('/create', isAdmin, function (req, res, next) {
   Tag.create({ name: req.body.tag }, function (err, tag) {
     if (err) return handleError(err);
-    res.send(tag)
+    res.json({
+        tag: tag
+    });
   });
 });
 

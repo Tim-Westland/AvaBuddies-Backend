@@ -19,7 +19,7 @@ router.get('/profile', (req, res, next) => {
     })
 });
 
-router.post('updateuser', (req, res) => {
+router.post('/updateuser', (req, res) => {
     var fields = {}
     if (req.body.name) {
       fields.name = req.body.name
@@ -36,13 +36,6 @@ router.post('updateuser', (req, res) => {
     if (req.body.isPrivate) {
       fields.isPrivate = req.body.isPrivate
     }
-    if (req.body.sharelocation) {
-      fields.sharelocation = req.body.sharelocation
-    }
-    if (req.body.image) {
-      fields.image = req.body.image
-    }
-
 
     if (req.user.isAdmin) {
         User.updateOne({_id: req.body.id},
@@ -56,18 +49,29 @@ router.post('updateuser', (req, res) => {
 
 router.post('/updateprofile', (req, res) => {
 
+  tagsArray = JSON.parse(req.body.tags);
+  fields = [];
+
+  if (req.body.aboutme) {
+    fields.aboutme = req.body.aboutme
+  }
+  if (req.body.sharelocation) {
+    fields.sharelocation = req.body.sharelocation
+  }
+  if (req.body.isPrivate) {
+    fields.isPrivate = req.body.isPrivate
+  }
+  if (tagsArray.length > 0) {
     tags = [];
-    for (const [key, value] of Object.entries(req.body.tags)) {
-      tags.push({_id: mongoose.Types.ObjectId(value)});
-    }
+    tagsArray.forEach(function(tag) { tags.push({_id: mongoose.Types.ObjectId(tag)});})
+    fields.tags = tags
+  }
+  else {
+    fields.tags = [];
+  }
 
-
-    User.updateOne({_id: req.user._id},
-        {
-            aboutme: req.body.aboutme,
-            sharelocation: req.body.sharelocation,
-            tags: tags
-        }).exec(function (err, result) {
+    User.updateOne({_id: req.user._id}, fields)
+        .exec(function (err, result) {
         res.json({message: message.success});
     })
 

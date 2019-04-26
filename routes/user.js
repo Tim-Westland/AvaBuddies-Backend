@@ -48,9 +48,12 @@ router.post('/updateuser', (req, res) => {
 });
 
 router.post('/updateprofile', (req, res) => {
-
-  tagsArray = JSON.parse(req.body.tags);
   fields = [];
+  tagsArray = [];
+  
+  if (req.body.tags) {
+    tagsArray = JSON.parse(req.body.tags);
+  }
 
   if (req.body.aboutme) {
     fields.aboutme = req.body.aboutme

@@ -51,9 +51,9 @@ router.post('/updateprofile', (req, res) => {
   fields = [];
   tagsArray = [];
   
-  if (req.body.tags) {
-    tagsArray = JSON.parse(req.body.tags);
-  }
+//  if (req.body.tags) {
+//    tagsArray = JSON.parse(req.body.tags);
+//  }
 
   if (req.body.aboutme) {
     fields.aboutme = req.body.aboutme
@@ -64,9 +64,12 @@ router.post('/updateprofile', (req, res) => {
   if (req.body.isPrivate) {
     fields.isPrivate = req.body.isPrivate
   }
-  if (tagsArray.length > 0) {
+  if (req.body.tags) {
     tags = [];
-    tagsArray.forEach(function(tag) { tags.push({_id: mongoose.Types.ObjectId(tag)});})
+    //tagsArray.forEach(function(tag) { tags.push({_id: mongoose.Types.ObjectId(tag)});})
+    for (const [key, value] of Object.entries(req.body.tags)) {
+      tags.push({_id: mongoose.Types.ObjectId(value)});
+    }
     fields.tags = tags
   }
   else {

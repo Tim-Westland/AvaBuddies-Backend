@@ -2,15 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Tag = require('../models/tag');
 const mongoose = require('mongoose');
+const auth = require('../modules/authentication');
 
 
-isAdmin = function(req, res, next) {
-  if (req.user.isAdmin){
-    return next();
-  } else {
-    res.redirect('/');
-  }
-}
+
 router.get('/list', function (req, res, next) {
 
   Tag.find().exec(function (err, result) {
@@ -23,14 +18,14 @@ router.get('/list', function (req, res, next) {
 });
 
 /* GET home page. */
-router.post('/create', isAdmin, function (req, res, next) {
+router.post('/create', auth.isAdmin, function (req, res, next) {
   Tag.create({ name: req.body.tag }, function (err, tag) {
     if (err) return handleError(err);
     res.send(tag)
   });
 });
 
-router.delete('/destroy', isAdmin, function (req, res, next) {
+router.delete('/destroy', auth.isAdmin, function (req, res, next) {
   Tag.deleteOne({
       _id: req.body.tag
   }).exec(done);

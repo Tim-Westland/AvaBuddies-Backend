@@ -3,7 +3,6 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const result = dotenv.config();
-const authHelper = require('../helpers/authHelper');
 const UserModel = require('../models/user');
 
 const router = express.Router();

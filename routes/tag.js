@@ -1,35 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const Tag = require('../models/tag');
-const mongoose = require('mongoose');
+const Controller = require('../controllers/tagController');
 const auth = require('../modules/authentication');
 
+router.route('/')
+	.get(Controller.getTags);
 
-
-router.get('/list', function (req, res, next) {
-
-  Tag.find().exec(function (err, result) {
-      if (err) return res.json({message: message.error + err});
-      console.log(err);
-      res.json({
-          tags: result
-      });
-  })
-});
-
-/* GET home page. */
-router.post('/create', auth.isAdmin, function (req, res, next) {
-  Tag.create({ name: req.body.tag }, function (err, tag) {
-    if (err) return handleError(err);
-    res.send(tag)
-  });
-});
-
-router.delete('/destroy', auth.isAdmin, function (req, res, next) {
-  Tag.deleteOne({
-      _id: req.body.tag
-  }).exec(done);
-});
-
+router.route('/:id')
+	.get(Controller.getTag)
+	.put(Controller.updateTag)
+  .delete(Controller.deleteTag);
 
 module.exports = router;

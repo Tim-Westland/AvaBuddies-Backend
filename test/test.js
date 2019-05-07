@@ -16,7 +16,7 @@ var userRouter = require('../routes/user');
 var friendRouter = require('../routes/friend');
 
 const UserModel = require('../models/user');
-const FriendModel = require('../models/friends');
+const FriendModel = require('../models/friend');
 
 require('../auth/auth');
 

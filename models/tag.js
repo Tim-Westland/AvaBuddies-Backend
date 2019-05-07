@@ -5,7 +5,12 @@ const TagSchema = new Schema({
     name: {
         type: String,
         required: true
-      }
+      },
+    isPrivate: {
+      type: Boolean,
+      required: true,
+      default: true
+    }
 
 });
 

@@ -3,14 +3,8 @@ const Schema = mongoose.Schema;
 var ObjectId = mongoose.Schema.Types.ObjectId;
 
 const FriendSchema = new Schema({
-    friend1: {
-        type: ObjectId,
-        required: true
-    },
-    friend2: {
-        type: ObjectId,
-        required: true
-    },
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
+    friend: { type: Schema.Types.ObjectId, ref: 'User' },
     confirmed: {
         type: Boolean,
         required: true,

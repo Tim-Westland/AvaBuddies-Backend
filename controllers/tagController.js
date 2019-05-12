@@ -12,13 +12,6 @@ exports.getTags = (req, res) => {
   })
 };
 
-exports.createTag = (req, res) => {
-  Tag.create({ name: req.body.tag }, function (err, tag) {
-    if (err) return handleError(err);
-    res.send(tag)
-  });
-};
-
 exports.getTag = (req, res) => {
   Tag.find({_id: req.params.id}).exec(function (err, result) {
       if (err) return res.json({message: message.error + err});
@@ -26,6 +19,13 @@ exports.getTag = (req, res) => {
           tags: result
       });
   })
+};
+
+exports.createTag = (req, res) => {
+  Tag.create({ name: req.body.tag }, function (err, tag) {
+    if (err) return handleError(err);
+    res.send(tag)
+  });
 };
 
 exports.updateTag = (req, res) => {

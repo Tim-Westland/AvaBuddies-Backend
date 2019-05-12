@@ -44,7 +44,8 @@ exports.getRequest = async (req, res) => {
 
 exports.createRequest = async (req, res) => {
   if (req.params.id === req.user._id) return res.status(422).json({message: "You can't add yourself as a friend."});
-  Friend.create({user: req.user._id, friend: req.params.id, confirmed: false}, function (err, tag) {
+
+  Friend.create({user: req.user._id, friend: req.params.id}, function (err, tag) {
     if (err) return res.status(500).json({message: message.error + err});
     res.json({message: message.success});
   });

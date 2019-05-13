@@ -20,7 +20,12 @@ console.log("Running server on port: " + port);
  */
 
 var server = http.createServer(app);
+var io = require('socket.io')(server);
 
+io.on('connection', function (socket) {
+  console.log('a user connected '+socket.handshake.address);
+
+});
 /**
  * Listen on provided port, on all network interfaces.
  */

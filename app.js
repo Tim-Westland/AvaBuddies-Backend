@@ -14,6 +14,7 @@ var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var userRouter = require('./routes/user');
 var friendRouter = require('./routes/friend');
+var chatRouter = require('./routes/chat');
 var tagRouter = require('./routes/tag');
 
 const message = require('./config/errorMessages');
@@ -68,7 +69,9 @@ app.use('/tag', passport.authenticate('jwt', {
   session:false
 }), tagRouter);
 
-
+app.use('/chat', passport.authenticate('jwt', {
+  session:false
+}), chatRouter);
 
 
 

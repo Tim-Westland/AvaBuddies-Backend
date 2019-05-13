@@ -53,9 +53,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/auth', authRouter);
 
 
-app.use('/', passport.authenticate('jwt', {
-  session : false
-}), indexRouter );
+app.get('/', function(req, res){
+  res.send('<script src="/socket.io/socket.io.js"></script>\n' +
+      '<script>\n' +
+      '  var socket = io();\n' +
+      '</script>');
+});
+
+// app.use('/', passport.authenticate('jwt', {
+//   session : false
+// }), indexRouter );
 
 app.use('/user', passport.authenticate('jwt', {
   session : false

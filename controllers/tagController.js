@@ -7,29 +7,31 @@ exports.getTags = (req, res) => {
   Tag.find().exec(function (err, result) {
       if (err) return res.json({message: message.error + err});
       res.json({
-          tag: result
-      });
-  })
-};
-
-exports.getTag = (req, res) => {
-  Tag.find({_id: req.params.id}).exec(function (err, result) {
-      if (err) return res.json({message: message.error + err});
-      res.json({
           tags: result
       });
   })
 };
 
+exports.getTag = (req, res) => {
+  Tag.findOne({_id: req.params.id}).exec(function (err, result) {
+      if (err) return res.json({message: message.error + err});
+      res.json({
+          tag: result
+      });
+  })
+};
+
 exports.createTag = (req, res) => {
-  Tag.create({ name: req.body.tag }, function (err, tag) {
+  Tag.create({ name: req.body.tag }, function (err, result) {
     if (err) return handleError(err);
-    res.send(tag)
+    res.json({
+        tag: result
+    });
   });
 };
 
 exports.updateTag = (req, res) => {
-  Tag.updateOne({ _id: req.params.id }, req.body)
+  Tag.updateOne({ _id: req.params.id }, {isPrivate: req.body.isPrivate})
   .exec(function(err, result) {
     res.json({
       tag: result
@@ -38,6 +40,10 @@ exports.updateTag = (req, res) => {
 };
 
 exports.deleteTag = (req, res) => {
+  console.log( req.params.id);
   Tag.deleteOne({_id: req.params.id})
-  .exec(done);
+  .exec(function (err) {
+      if (err) return res.json({message: message.error + err});
+      res.json({message: message.success});
+  });
 };

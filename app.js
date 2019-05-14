@@ -49,7 +49,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 
-app.use('/', authRouter);
+app.use('/auth', authRouter);
 
 app.use('/users', passport.authenticate('jwt', {
   session : false

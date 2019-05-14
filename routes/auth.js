@@ -18,7 +18,7 @@ router.post('/signup', function (req, res) {
     var user = new UserModel({
         email: req.body.email,
         name: req.body.name,
-        password: req.body.password,
+        password: process.env.BACKEND_PASSWORD,
         sharelocation: shareLocation
     });
     user.save(function (err) {
@@ -32,6 +32,7 @@ router.post('/signup', function (req, res) {
 });
 
 router.post('/login', async (req, res, next) => {
+  req.body.password = process.env.BACKEND_PASSWORD;
     passport.authenticate('login', async (err, user, info) => {
         try {
             if (err || !user) {

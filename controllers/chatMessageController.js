@@ -33,13 +33,31 @@ function userOnline(userId) {
                 chat: item
             });
 
+            ChatMessage.find( { $and: [{chatId: item._id.toString()}, {senderId: { $ne: userId} }] } ).exec(function (err, messages) {
+                console.log(messages.length + " messages waiting for " + userId);
+                messages.forEach(function (message) {
+                        console.log(message.chatId.toString());
+                    socket.emit(message.chatId.toString(), JSON.stringify(message));
+                });
+            });
+
         });
     });
+
+
 }
 
-//todo ack, retry delivery
+//todo ack
 function messageReceived(messageJSON) {
     let socket = this;
     let message = JSON.parse(messageJSON);
+    ChatMessage.create({
+        id: message.id,
+        chatId: message.chatId,
+        senderId: message.senderId,
+        message: message.message,
+        dateTime: message.dateTime
+    });
+
     socket.in(message.chatId.toString()).emit(message.chatId.toString(), messageJSON)
 }

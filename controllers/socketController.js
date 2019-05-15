@@ -1,10 +1,13 @@
 const chatMessageController = require('./chatMessageController');
 
-exports.connect = function (socket) {
+exports.initialize = function () {
+
+}
+
+exports.connect = function (socket, io) {
     console.log('Socket connected to socketController '+socket.id);
     socket.on('disconnect', disconnect);
-
-    chatMessageController.listen(socket);
+    chatMessageController.listen(socket, io);
 
 };
 

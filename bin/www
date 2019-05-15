@@ -23,7 +23,7 @@ console.log("Running server on port: " + port);
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 
-io.on('connection', socketController.connect);
+io.on('connection', (socket) => {socketController.connect(socket, io)});
 
 /**
  * Listen on provided port, on all network interfaces.

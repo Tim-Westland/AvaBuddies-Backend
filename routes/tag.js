@@ -4,7 +4,8 @@ const Controller = require('../controllers/tagController');
 const auth = require('../modules/authentication');
 
 router.route('/')
-	.get(Controller.getTags);
+	.get(Controller.getTags)
+	.post(Controller.createTag);
 
 router.route('/:id')
 	.get(Controller.getTag)

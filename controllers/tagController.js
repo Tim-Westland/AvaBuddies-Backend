@@ -3,47 +3,65 @@ const mongoose = require('mongoose');
 const auth = require('../modules/authentication');
 
 
-exports.getTags = (req, res) => {
-  Tag.find().exec(function (err, result) {
-      if (err) return res.json({message: message.error + err});
-      res.json({
-          tags: result
-      });
-  })
-};
-
-exports.getTag = (req, res) => {
-  Tag.findOne({_id: req.params.id}).exec(function (err, result) {
-      if (err) return res.json({message: message.error + err});
-      res.json({
-          tag: result
-      });
-  })
-};
-
-exports.createTag = (req, res) => {
-  Tag.create({ name: req.body.tag }, function (err, result) {
-    if (err) return handleError(err);
-    res.json({
-        tag: result
-    });
+exports.getTags = async(req, res) => {
+  const tags = await Tag.find().exec()
+  .then(function (result) {
+    return result;
+  }).catch(function (err) {
+      return err.message;
   });
+
+  return returnData(req.test, tag = {tags}, res);
 };
 
-exports.updateTag = (req, res) => {
-  Tag.updateOne({ _id: req.params.id }, {isPrivate: req.body.isPrivate})
-  .exec(function(err, result) {
-    res.json({
-      tag: result
-    });
-  })
-};
-
-exports.deleteTag = (req, res) => {
-  console.log( req.params.id);
-  Tag.deleteOne({_id: req.params.id})
-  .exec(function (err) {
-      if (err) return res.json({message: message.error + err});
-      res.json({message: message.success});
+exports.getTag = async(req, res) => {
+  var tag = await Tag.findOne({_id: req.params.id})
+  .exec()
+  .then(function (result) {
+    return result;
+  }).catch(function (err) {
+      return err.message;
   });
+  return returnData(req.test, tag, res);
 };
+
+exports.createTag = async(req, res) => {
+  var tag = new Tag({name: req.body.name})
+  var savedTag = await tag.save()
+  .then((result) => {
+    return result;
+  }).catch((err) => {
+      return err.message;;
+  });
+  return returnData(req.test, tag, res);
+};
+
+exports.updateTag = async(req, res) => {
+  var tag = await Tag.updateOne({ _id: req.params.id }, {name: req.body.name, isPrivate: req.body.isPrivate})
+  .exec()
+  .then(function (result) {
+    return result;
+  }).catch(function (err) {
+      return err.message;
+  });
+  return returnData(req.test, tag, res);
+};
+
+exports.deleteTag = async(req, res) => {
+  var tag = await Tag.deleteOne({_id: req.params.id})
+  .exec()
+  .then(function (result) {
+    return result;
+  }).catch(function (err) {
+      return err.message;
+  });
+  return returnData(req.test, tag, res);
+};
+
+function returnData (test, data, res) {
+  if (test) {
+    return data
+  } else {
+    return res.json(data)
+  }
+}

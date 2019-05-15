@@ -7,25 +7,23 @@ const express = require('express');
 
 
 
-exports.getUser = (req, res) => {
-  if (req.params.id = "profile") {
+exports.getUser = async(req, res) => {
+  if (req.params.id == "profile") {
     userId = req.user._id
   } else {
     userId = req.params.id
   }
 
-  User.findOne({ _id: userId })
+  const user = await User.findOne({ _id: userId })
     .populate('tags')
     .select('-password')
-    .exec().then(function(result) {
-      res.json({
-        user: result,
-      })
-    }).catch(function(err) {
-      if (err) {
-        res.status(500).send({ error: "could not find user." });
-      }
+    .exec()
+    .then(function (result) {
+      return result;
+    }).catch(function (err) {
+        return err.message;
     });
+    return returnData(req.test, user, res);
 };
 
 exports.getUsers = async(req, res) => {
@@ -49,7 +47,7 @@ exports.getUsers = async(req, res) => {
   });
 };
 
-exports.updateUser = (req, res) => {
+exports.updateUser = async(req, res) => {
   if (req.params.id == 'profile') {
     userId = req.user._id
   } else {
@@ -68,15 +66,17 @@ exports.updateUser = (req, res) => {
     req.body.tags = tags;
   }
 
-  User.updateOne({ _id: req.user._id }, req.body)
-  .exec(function(err, result) {
-    res.json({
-      message: message.success
-    });
-  })
+  const user = await User.updateOne({ _id: userId }, req.body)
+  .exec()
+  .then(function (result) {
+    return result;
+  }).catch(function (err) {
+      return err.message;
+  });
+  return returnData(req.test, user, res);
 };
 
-exports.deleteUser = (req, res) => {
+exports.deleteUser = async(req, res) => {
   if (req.params.id == 'profile') {
     userId = req.user._id
   } else {
@@ -88,12 +88,14 @@ exports.deleteUser = (req, res) => {
   } else if (!req.user.isAdmin && userId != req.user._id) {
     console.log('cannot delete others');
   } else {
-    User.deleteOne({
-        _id: userId
-    }).exec(function (err) {
-        if (err) return res.json({message: message.error + err});
-        res.json({message: message.success});
+    var user = await User.deleteOne({ _id: userId })
+    .exec()
+    .then(function (result) {
+      return result;
+    }).catch(function (err) {
+        return err.message;
     });
+    return returnData(req.test, user, res);
   }
 };
 
@@ -116,4 +118,12 @@ async function findTags (query, cb) {
   }).catch(function (err) {
       return err.message;
   });
+}
+
+function returnData (test, data, res) {
+  if (test) {
+    return data
+  } else {
+    return res.json(data)
+  }
 }

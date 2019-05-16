@@ -33,18 +33,18 @@ exports.getUsers = async(req, res) => {
   }
   else if (req.query.tags) {
     var tagIds = await findTags(req.query.tags);
-    query = {'tags': {$in: tagIds}}
+    query = {tags: {$in: tagIds}}
   }
-  User.find(query)
+  const user = await User.find(query)
   .populate('tags')
   .select('-password')
   .exec().then(function (result) {
-    res.json({
-      users: result
-    })
+    return result
   }).catch(function (err) {
       return err.message;
   });
+  return returnData(req.test, user, res);
+
 };
 
 exports.updateUser = async(req, res) => {
@@ -108,7 +108,7 @@ async function findTags (query, cb) {
     tags.push(  new RegExp(item, "i") );
   });
 
-  return await Tag.find({name: {$in: tags }})
+  return await Tag.find({name: {$in: tags }, isPrivate: false})
   .select('_id')
   .exec().then(function (result) {
     result.forEach(function(item) {

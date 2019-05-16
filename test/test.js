@@ -44,7 +44,25 @@ describe('Tests', function(done) {
     });
 
     // create objects
-    // Ceate user objects
+
+    tagOne = new Tag({
+      name: 'tagOne'
+    })
+    tagOne.save(function() {});
+
+    tagTwo = new Tag({
+      name: 'tagTwo'
+    })
+    tagTwo.save(function() {});
+
+    tagThree = new Tag({
+      name: 'tagThree',
+      isPrivate: false
+    })
+    tagThree.save(function() {});
+
+
+
     localUser = new User({
       email: 'local@test.nl',
       name: 'local',
@@ -56,14 +74,14 @@ describe('Tests', function(done) {
     userOne = new User({
       email: 'userOne@test.nl',
       name: 'userOne',
-      password: 'test',
+      password: 'test'
     })
     userOne.save(function() {});
 
     userTwo = new User({
       email: 'userTwo@test.nl',
       name: 'userTwo',
-      password: 'test',
+      password: 'test'
     })
     userTwo.save(function() {});
 
@@ -71,10 +89,9 @@ describe('Tests', function(done) {
       email: 'userThree@test.nl',
       name: 'userThree',
       password: 'test',
+      tags: [mongoose.Types.ObjectId(tagThree._id)]
     })
     userThree.save(function() {});
-
-
 
 
     requestOne = new Friend({
@@ -82,9 +99,6 @@ describe('Tests', function(done) {
       friend: userTwo._id
     })
     requestOne.save(function() {});
-
-
-
 
     requestTwo = new Friend({
       user: localUser._id,
@@ -97,19 +111,8 @@ describe('Tests', function(done) {
       user: userThree._id,
       friend: localUser._id
     })
-    requestThree.save(function() {});
+    requestThree.save(function() { done(null, null) });
 
-
-    //create tag objects
-    tagOne = new Tag({
-      name: 'tagOne'
-    })
-    tagOne.save(function() {});
-
-    tagTwo = new Tag({
-      name: 'tagOne'
-    })
-    tagTwo.save(function() { done(null, null) });
   });
 
   describe('Tags', function(done) {
@@ -335,6 +338,21 @@ describe('Tests', function(done) {
         expect(usertwo.name).to.equal('local');
         done()
       });
+
+      before( async() => {
+        var reqOptions = { query: { tags: 'tagThree'}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+
+        userByTags = await UserController.getUsers(req, res);
+      })
+
+      it('should find users by tags', function(done) {
+        expect(userByTags).to.be.an('array');
+        expect(userByTags[0].name).to.equal('userThree');
+        done()
+      });
+
+
     });
 
     describe('update', function(done) {

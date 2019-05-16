@@ -15,7 +15,7 @@ exports.listen = function (socket) {
 function userOnline(userId) {
     let socket = this;
     console.log('user online with userId: ' + userId + ' with socket ' + socket.id  );
-
+    socket.on('messageAcked', messageAcked);
     Chat.find({$or: [{user1: userId}, {user2: userId}]}).exec(function (err, chats) {
         chats.forEach(function (item) {
 
@@ -47,7 +47,6 @@ function userOnline(userId) {
 
 }
 
-//todo ack
 function messageReceived(messageJSON) {
     let socket = this;
     let message = JSON.parse(messageJSON);
@@ -60,4 +59,12 @@ function messageReceived(messageJSON) {
     });
 
     socket.in(message.chatId.toString()).emit(message.chatId.toString(), messageJSON)
+}
+
+function messageAcked(messageId) {
+    console.log('Acked ' + messageId);
+    ChatMessage.deleteOne({id: messageId}).exec(function (err) {
+        if (err) console.log("error deleting message " + err);
+        else console.log("Message " + messageId + " deleted");
+    });
 }

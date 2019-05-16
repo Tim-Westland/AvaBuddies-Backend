@@ -2,11 +2,6 @@ const ChatMessage = require('../models/chatMessage');
 const Chat = require('../models/chat');
 
 var listeningChats = [];
-var sockIo; //avoid using if possible, todo: delete if possible...
-
-exports.initialize = function (io) {
-    sockIo = io;
-};
 
 exports.listen = function (socket) {
     socket.on('user online', userOnline);
@@ -43,8 +38,6 @@ function userOnline(userId) {
 
         });
     });
-
-
 }
 
 function messageReceived(messageJSON) {

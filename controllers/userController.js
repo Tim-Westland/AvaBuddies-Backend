@@ -27,7 +27,7 @@ exports.getUser = async(req, res) => {
 };
 
 exports.getUsers = async(req, res) => {
-  query = {};
+  query = { _id: { "$ne": req.user._id } };
   if (req.query.name) {
     query = {'name': {'$regex': req.query.name, '$options': 'i'}}
   }
@@ -35,7 +35,7 @@ exports.getUsers = async(req, res) => {
     var tagIds = await findTags(req.query.tags);
     query = {tags: {$in: tagIds}}
   }
-  const user = await User.find(query)
+  const users = await User.find(query)
   .populate('tags')
   .select('-password')
   .exec().then(function (result) {
@@ -43,7 +43,7 @@ exports.getUsers = async(req, res) => {
   }).catch(function (err) {
       return err.message;
   });
-  return returnData(req.test, user, res);
+  return returnData(req.test, {users}, res);
 
 };
 
@@ -53,9 +53,10 @@ exports.updateUser = async(req, res) => {
   } else {
     userId = req.params.id
   }
+
   if (req.body.email) { delete req.body.email }
   if (req.body.isAdmin && (userId == req.user._id || !req.user.isAdmin)) { delete req.body.isAdmin }
-  if (req.body.sharelocation && req.user.isAdmin) { delete req.body.sharelocation }
+  if (userId != req.user._id) { delete req.body.sharelocation }
   if (req.body.password) { delete req.body.password }
 
   if (req.body.tags) {

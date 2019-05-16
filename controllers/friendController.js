@@ -55,11 +55,11 @@ exports.getRequest = async (req, res) => {
 };
 
 exports.createRequest = async (req, res) => {
-  if (req.params.id === req.user._id) {
+  if (req.body.id === req.user._id) {
     return returnData(req.test, {error: 'Can not add youself as friend'}, res, 422);
   }
 
-  var friend = new Friend({ user: req.user._id, friend: req.params.id })
+  var friend = new Friend({ user: req.user._id, friend: req.body.id })
   var savedFriend = await friend.save()
   .then((result) => {
     return result;

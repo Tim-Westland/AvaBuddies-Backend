@@ -68,7 +68,7 @@ app.use('/tag', passport.authenticate('jwt', {
   session:false
 }), tagRouter);
 
-app.use('/chat', passport.authenticate('jwt', {
+app.use('/chats', passport.authenticate('jwt', {
   session:false
 }), chatRouter);
 

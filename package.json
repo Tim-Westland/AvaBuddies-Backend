@@ -16,6 +16,7 @@
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
+    "mock-req-res": "^1.1.0",
     "mongoose": "^5.4.19",
     "morgan": "~1.9.0",
     "msal": "^0.2.4",
@@ -23,9 +24,16 @@
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
+    "proxyquire": "^2.1.0",
     "pug": "^2.0.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
     "simple-oauth2": "^2.2.1",
+<<<<<<< HEAD
     "socket.io": "^2.2.0",
+=======
+    "sinon": "^7.3.2",
+>>>>>>> REST_refactoring
     "supertest": "^4.0.2",
     "swagger-ui-express": "^4.0.2"
   },

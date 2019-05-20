@@ -52,19 +52,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/auth', authRouter);
 
-app.use('/', passport.authenticate('jwt', {
-  session : false
-}), indexRouter );
 
-app.use('/user', passport.authenticate('jwt', {
+app.use('/users', passport.authenticate('jwt', {
   session : false
 }), userRouter );
 
-app.use('/friend', passport.authenticate('jwt', {
+app.use('/friends', passport.authenticate('jwt', {
   session:false
 }), friendRouter);
 
-app.use('/tag', passport.authenticate('jwt', {
+app.use('/tags', passport.authenticate('jwt', {
   session:false
 }), tagRouter);
 

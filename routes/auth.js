@@ -3,36 +3,18 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const result = dotenv.config();
-const authHelper = require('../helpers/authHelper');
-const UserModel = require('../models/user');
+const User = require('../models/user');
+const Controller = require('../controllers/authController');
 
 const router = express.Router();
 
 
+router.route('/signup')
+	.post(Controller.signupUser);
 
-router.post('/signup', function (req, res) {
-    var shareLocation = false;
-    if (req.body.sharelocation) {
-        shareLocation = req.body.sharelocation;
-    }
-
-    var user = new UserModel({
-        email: req.body.email,
-        name: req.body.name,
-        password: req.body.password,
-        sharelocation: shareLocation
-    });
-    user.save(function (err) {
-        if (err) return res.status(500).json({message: "an error occured " + err});
-        res.json({
-            message: 'Signup successful',
-            user: user
-        });
-    });
-
-});
 
 router.post('/login', async (req, res, next) => {
+  req.body.password = process.env.BACKEND_PASSWORD;
     passport.authenticate('login', async (err, user, info) => {
         try {
             if (err || !user) {

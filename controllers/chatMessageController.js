@@ -43,21 +43,32 @@ function userOnline(userId) {
 function messageReceived(messageJSON) {
     let socket = this;
     let message = JSON.parse(messageJSON);
-    ChatMessage.create({
-        id: message.id,
-        chatId: message.chatId,
-        senderId: message.senderId,
-        message: message.message,
-        dateTime: message.dateTime
-    });
+    console.log('Received ' + message.id);
+     ChatMessage.countDocuments({id: message.id}).exec(function (err, count) {
 
-    socket.in(message.chatId.toString()).emit(message.chatId.toString(), messageJSON)
+         if (count === 0) {
+             console.log('Unique message received ' + message.id);
+
+             ChatMessage.create({
+                 id: message.id,
+                 chatId: message.chatId,
+                 senderId: message.senderId,
+                 message: message.message,
+                 dateTime: message.dateTime
+             });
+
+             socket.in(message.chatId.toString()).emit(message.chatId.toString(), messageJSON)
+         } else {
+             console.log('Duplicate message received ' + message.id);
+         }
+     });
+
 }
 
 function messageAcked(messageId) {
     console.log('Acked ' + messageId);
     ChatMessage.deleteOne({id: messageId}).exec(function (err) {
         if (err) console.log("error deleting message " + err);
-        else console.log("Message " + messageId + " deleted");
+        else console.log("Deleted " + messageId);
     });
 }

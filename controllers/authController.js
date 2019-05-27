@@ -19,7 +19,7 @@ exports.signupUser = async(req, res) => {
   .then((result) => {
     return result;
   }).catch((err) => {
-      return err.message;;
+      return err.message;
   });
   return returnData(req.test, savedUser, res);
 };

@@ -24,12 +24,13 @@ const Tag = require('../models/tag');
 var app = express();
 
 async function get(res, req) {
-  return await TagController.getTag(res, req)
+  return await TagController.getTag(res, req);
   done();
 }
 
 describe('Tests', function(done) {
   before(function(done) {
+    this.timeout(10000); //increase the timeout when testing with a slow internet connection
 
     mongoose.connect(process.env.TESTDATABASE, {
       useNewUrlParser: true
@@ -47,18 +48,18 @@ describe('Tests', function(done) {
 
     tagOne = new Tag({
       name: 'tagOne'
-    })
+    });
     tagOne.save(function() {});
 
     tagTwo = new Tag({
       name: 'tagTwo'
-    })
+    });
     tagTwo.save(function() {});
 
     tagThree = new Tag({
       name: 'tagThree',
       isPrivate: false
-    })
+    });
     tagThree.save(function() {});
 
 
@@ -75,14 +76,14 @@ describe('Tests', function(done) {
       email: 'userOne@test.nl',
       name: 'userOne',
       password: 'test'
-    })
+    });
     userOne.save(function() {});
 
     userTwo = new User({
       email: 'userTwo@test.nl',
       name: 'userTwo',
       password: 'test'
-    })
+    });
     userTwo.save(function() {});
 
     userThree = new User({
@@ -90,27 +91,27 @@ describe('Tests', function(done) {
       name: 'userThree',
       password: 'test',
       tags: [mongoose.Types.ObjectId(tagThree._id)]
-    })
+    });
     userThree.save(function() {});
 
 
     requestOne = new Friend({
       user: localUser._id,
       friend: userTwo._id
-    })
+    });
     requestOne.save(function() {});
 
     requestTwo = new Friend({
       user: localUser._id,
       friend: userOne._id,
       accepted: true
-    })
+    });
     requestTwo.save(function() {});
 
     requestThree = new Friend({
       user: userThree._id,
       friend: localUser._id
-    })
+    });
     requestThree.save(function() { done(null, null) });
 
   });
@@ -128,7 +129,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         data = await TagController.createTag(req, res);
-      })
+      });
 
       it('should create a tag', function(done) {
         expect(data.name).to.equal('createdTag');
@@ -143,7 +144,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         data = await TagController.getTag(req, res);
-      })
+      });
 
       it('should find a tag', function(done) {
         expect(data.name).to.equal('tagOne');
@@ -157,7 +158,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
         data = await TagController.updateTag(req, res);
         updateTag = await TagController.getTag(req, res);
-      })
+      });
 
       it('should update a tag', function(done) {
         expect(updateTag.name).to.equal('newName');
@@ -172,7 +173,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
         deletedTag = await TagController.deleteTag(req, res);
         data = await TagController.getTag(req, res);
-      })
+      });
 
       it('should delete a tag', function(done) {
         expect(deletedTag.deletedCount).to.equal(1);
@@ -200,7 +201,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
         fail = await FriendController.createRequest(req, res);
 
-      })
+      });
 
       it('should not create a friend request if user and friend is are the same', function(done) {
         expect(fail.error).to.be.an('string');
@@ -223,7 +224,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         data = await FriendController.getRequest(req, res);
-      })
+      });
 
       it('should find a request', function(done) {
         expect(data.own_requests).to.be.empty;
@@ -238,7 +239,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         accept = await FriendController.updateRequest(req, res);
-      })
+      });
 
       it('should update and accept a request', function(done) {
         expect(accept.confirmed).to.equal(true);
@@ -251,7 +252,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         validate = await FriendController.updateRequest(req, res);
-      })
+      });
 
       it('should update and validate a request', function(done) {
         expect(validate.confirmed).to.equal(true);
@@ -266,7 +267,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         deny = await FriendController.deleteRequest(req, res);
-      })
+      });
 
       it('should deny and delete a request', function(done) {
         expect(String(localUser._id)).to.equal(String(deny.user));
@@ -278,7 +279,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         cancel = await FriendController.deleteRequest(req, res);
-      })
+      });
 
       it('should deny and delete a request', function(done) {
         expect(String(localUser._id)).to.equal(String(cancel.user));
@@ -301,7 +302,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         data = await AuthController.signupUser(req, res);
-      })
+      });
 
       it('should signup user', function(done) {
         expect(data.name).to.equal('createdUser');
@@ -320,7 +321,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         userone = await UserController.getUser(req, res);
-      })
+      });
 
       it('should find a user', function(done) {
         expect(userone.name).to.equal('userOne');
@@ -332,7 +333,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         usertwo = await UserController.getUser(req, res);
-      })
+      });
 
       it('should find profile', function(done) {
         expect(usertwo.name).to.equal('local');
@@ -344,11 +345,11 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
 
         userByTags = await UserController.getUsers(req, res);
-      })
+      });
 
       it('should find users by tags', function(done) {
-        expect(userByTags).to.be.an('array');
-        expect(userByTags[0].name).to.equal('userThree');
+        expect(userByTags.users).to.be.an('array');
+        expect(userByTags.users[0].name).to.equal('userThree');
         done()
       });
 
@@ -362,7 +363,7 @@ describe('Tests', function(done) {
 
         data = await UserController.updateUser(req, res);
         updatedUser = await UserController.getUser(req, res)
-      })
+      });
 
       it('should update a user', function(done) {
         expect(updatedUser.name).to.equal('newName');
@@ -380,7 +381,7 @@ describe('Tests', function(done) {
         var req = mockRequest(reqOptions);
         deletedUser = await UserController.deleteUser(req, res);
         data = await UserController.getUser(req, res);
-      })
+      });
 
       it('should delete a user', function(done) {
         expect(deletedUser.deletedCount).to.equal(1);

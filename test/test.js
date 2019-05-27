@@ -15,12 +15,12 @@ const UserController = require('../controllers/userController');
 const TagController = require('../controllers/tagController');
 const FriendController = require('../controllers/friendController');
 const AuthController = require('../controllers/authController');
-
+const ChatController = require('../controllers/chatController');
 
 const User = require('../models/user');
 const Friend = require('../models/friend');
 const Tag = require('../models/tag');
-
+const Chat = require('../models/chat');
 var app = express();
 
 async function get(res, req) {
@@ -61,8 +61,6 @@ describe('Tests', function(done) {
       isPrivate: false
     });
     tagThree.save(function() {});
-
-
 
     localUser = new User({
       email: 'local@test.nl',
@@ -114,6 +112,23 @@ describe('Tests', function(done) {
     });
     requestThree.save(function() { done(null, null) });
 
+    chatOne = new Chat({
+      user1: localUser._id,
+      user2: userOne._id
+    });
+    chatOne.save(function() {});
+
+    chatTwo = new Chat({
+      user1: localUser._id,
+      user2: userTwo._id
+    });
+    chatOne.save(function() {});
+
+    chatThree = new Chat({
+      user1: localUser._id,
+      user2: userThree._id
+    });
+    chatOne.save(function() {});
   });
 
   describe('Tags', function(done) {
@@ -286,6 +301,56 @@ describe('Tests', function(done) {
         done()
       });
 
+    });
+  });
+
+  describe('Chats', function(done) {
+
+    const res = mockRequest();
+    res.status = sinon.stub().returns(res);
+    res.send = sinon.spy();
+
+    describe('create', function(done) {
+      var success = null;
+      var fail = null;
+      before( async() => {
+
+        var reqOptions = { params: { id: userOne._id}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+        success = await ChatController.createRequest(req, res);
+
+        var reqOptions = { params: { id: localUser._id}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+        fail = await ChatController.createRequest(req, res);
+
+      });
+
+      it('should not create a chat if user1 and user2 is are the same', function(done) {
+        expect(fail.error).to.be.an('string');
+        expect(fail.error).to.equal('You can\'t add yourself as a chat.');
+        done()
+      });
+
+      it('should create a chat', function(done) {
+        expect(success.user1).to.equal(localUser._id);
+        expect(success.user2).to.equal(userOne._id);
+        done()
+      });
+    });
+
+    describe('find', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { user: userOne, test: true };
+        var req = mockRequest(reqOptions);
+
+        data = await ChatController.getRequests(req, res);
+      });
+
+      it('should find a chat', function(done) {
+        expect(data.chats).to.have.lengthOf(2);
+        done()
+      });
     });
   });
 

@@ -16,6 +16,7 @@ var userRouter = require('./routes/user');
 var friendRouter = require('./routes/friend');
 var chatRouter = require('./routes/chat');
 var tagRouter = require('./routes/tag');
+var challengeRouter = require('./routes/challenge');
 
 const message = require('./config/errorMessages');
 
@@ -68,6 +69,10 @@ app.use('/tags', passport.authenticate('jwt', {
 app.use('/chats', passport.authenticate('jwt', {
   session:false
 }), chatRouter);
+
+app.use('/challenges', passport.authenticate('jwt', {
+  session:false
+}), challengeRouter);
 
 
 

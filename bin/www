@@ -3,6 +3,7 @@
 /**
  * Module dependencies.
  */
+const socketController = require('../controllers/socketController');
 
 var app = require('../app');
 var debug = require('debug')('avabuddies-backend:server');
@@ -18,8 +19,13 @@ console.log("Running server on port: " + port);
 /**
  * Create HTTP server.
  */
-
 var server = http.createServer(app);
+
+/**
+ * Create socketIO server.
+ */
+var io = require('socket.io')(server);
+io.on('connection', socketController.connect);
 
 /**
  * Listen on provided port, on all network interfaces.

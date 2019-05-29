@@ -14,6 +14,7 @@ var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var userRouter = require('./routes/user');
 var friendRouter = require('./routes/friend');
+var chatRouter = require('./routes/chat');
 var tagRouter = require('./routes/tag');
 
 const message = require('./config/errorMessages');
@@ -52,23 +53,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/auth', authRouter);
 
 
-app.use('/', passport.authenticate('jwt', {
-  session : false
-}), indexRouter );
-
-app.use('/user', passport.authenticate('jwt', {
+app.use('/users', passport.authenticate('jwt', {
   session : false
 }), userRouter );
 
-app.use('/friend', passport.authenticate('jwt', {
+app.use('/friends', passport.authenticate('jwt', {
   session:false
 }), friendRouter);
 
-app.use('/tag', passport.authenticate('jwt', {
+app.use('/tags', passport.authenticate('jwt', {
   session:false
 }), tagRouter);
 
-
+app.use('/chats', passport.authenticate('jwt', {
+  session:false
+}), chatRouter);
 
 
 

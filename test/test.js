@@ -1,4 +1,3 @@
-var request = require('supertest');
 var expect = require('chai').expect;
 var should = require('chai').should();
 const dotenv = require('dotenv');
@@ -9,405 +8,458 @@ var mongoose = require('mongoose');
 var passport = require('passport');
 var logger = require('morgan');
 var express = require('express');
+const { mockRequest, mockResponse } = require('mock-req-res')
+const sinon = require('sinon')
 
-var indexRouter = require('../routes/index');
-var authRouter = require('../routes/auth');
-var userRouter = require('../routes/user');
-var friendRouter = require('../routes/friend');
+const UserController = require('../controllers/userController');
+const TagController = require('../controllers/tagController');
+const FriendController = require('../controllers/friendController');
+const AuthController = require('../controllers/authController');
+const ChatController = require('../controllers/chatController');
 
-const UserModel = require('../models/user');
-const FriendModel = require('../models/friends');
-
-require('../auth/auth');
-
+const User = require('../models/user');
+const Friend = require('../models/friend');
+const Tag = require('../models/tag');
+const Chat = require('../models/chat');
 var app = express();
 
-
-function makeGetRequest(route, statusCode, done) {
-  request(app)
-    .get(route)
-    .expect(statusCode)
-    .end(function(err, res) {
-      if (err) {
-        return done(err);
-      }
-
-      done(null, res);
-    });
-};
-
-function makeAuthGetRequest(route, token, statusCode, done) {
-  request(app)
-    .get(route)
-    .set('Authorization', 'Bearer ' + token)
-    .expect(statusCode)
-    .end(function(err, res) {
-      if (err) {
-        return done(err);
-      }
-
-      done(null, res);
-    });
-};
-
-function makeAuthDeleteRequest(route, token, statusCode, done) {
-  request(app)
-    .delete(route)
-    .set('Authorization', 'Bearer ' + token)
-    .expect(statusCode)
-    .end(function(err, res) {
-      if (err) {
-        return done(err);
-      }
-
-      done(null, res);
-    });
-};
-
-function makeAuthPostRequest(route, data, token, statusCode, done) {
-  request(app)
-    .post(route)
-    .set('Authorization', 'Bearer ' + token)
-    .send(data)
-    .expect(statusCode)
-    .end(function(err, res) {
-      if (err) {
-        return done(err);
-      }
-
-      done(null, res);
-    });
-};
-
-function makePostRequest(route, data, statusCode, done) {
-  request(app)
-    .post(route)
-    .send(data)
-    .expect(statusCode)
-    .end(function(err, res) {
-      if (err) {
-        return done(err);
-      }
-
-      done(null, res);
-    });
-};
+async function get(res, req) {
+  return await TagController.getTag(res, req);
+  done();
+}
 
 describe('Tests', function(done) {
   before(function(done) {
+    this.timeout(10000); //increase the timeout when testing with a slow internet connection
 
     mongoose.connect(process.env.TESTDATABASE, {
       useNewUrlParser: true
     });
-
+    mongoose.set('useFindAndModify', false);
     //Get the default connection
     var db = mongoose.connection;
-
-    app.use(bodyParser.urlencoded({
-      extended: false
-    }));
-    app.use(express.json());
-    app.use(express.urlencoded({
-      extended: false
-    }));
-
-    app.use('/auth', authRouter);
-
-    app.use('/', passport.authenticate('jwt', {
-      session: false
-    }), indexRouter);
-
-    app.use('/user', passport.authenticate('jwt', {
-      session: false
-    }), userRouter);
-
-    app.use('/friend', passport.authenticate('jwt', {
-      session: false
-    }), friendRouter);
-
 
     //Bind connection to error event (to get notification of connection errors)
     db.on('error', console.error.bind(console, 'connection error:'));
     db.once('open', function() {
-      done();
     });
 
+    // create objects
 
+    tagOne = new Tag({
+      name: 'tagOne'
+    });
+    tagOne.save(function() {});
+
+    tagTwo = new Tag({
+      name: 'tagTwo'
+    });
+    tagTwo.save(function() {});
+
+    tagThree = new Tag({
+      name: 'tagThree',
+      isPrivate: false
+    });
+    tagThree.save(function() {});
+
+    localUser = new User({
+      email: 'local@test.nl',
+      name: 'local',
+      password: 'local',
+      isAdmin: true
+    });
+    localUser.save(function() {});
+
+    userOne = new User({
+      email: 'userOne@test.nl',
+      name: 'userOne',
+      password: 'test'
+    });
+    userOne.save(function() {});
+
+    userTwo = new User({
+      email: 'userTwo@test.nl',
+      name: 'userTwo',
+      password: 'test'
+    });
+    userTwo.save(function() {});
+
+    userThree = new User({
+      email: 'userThree@test.nl',
+      name: 'userThree',
+      password: 'test',
+      tags: [mongoose.Types.ObjectId(tagThree._id)]
+    });
+    userThree.save(function() {});
+
+
+    requestOne = new Friend({
+      user: localUser._id,
+      friend: userTwo._id
+    });
+    requestOne.save(function() {});
+
+    requestTwo = new Friend({
+      user: localUser._id,
+      friend: userOne._id,
+      accepted: true
+    });
+    requestTwo.save(function() {});
+
+    requestThree = new Friend({
+      user: userThree._id,
+      friend: localUser._id
+    });
+    requestThree.save(function() { done(null, null) });
+
+    chatOne = new Chat({
+      user1: localUser._id,
+      user2: userOne._id
+    });
+    chatOne.save(function() {});
+
+    chatTwo = new Chat({
+      user1: localUser._id,
+      user2: userTwo._id
+    });
+    chatOne.save(function() {});
+
+    chatThree = new Chat({
+      user1: localUser._id,
+      user2: userThree._id
+    });
+    chatOne.save(function() {});
   });
 
-  describe('accounts', function() {
+  describe('Tags', function(done) {
 
+    const res = mockRequest();
+    res.status = sinon.stub().returns(res);
+    res.send = sinon.spy();
 
-    describe('Authentication', function() {
-      before(function(done) {
-        var user = new UserModel({
-          email: 'tim@dev.nl',
-          name: 'tim',
-          password: 'test',
-          sharelocation: true
-        });
-        user.save(function(err) {
-          if (err) return done(err);
-          done(null, null)
-        });
+    describe('create', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { body: { name: 'createdTag'}, test: true };
+        var req = mockRequest(reqOptions);
+
+        data = await TagController.createTag(req, res);
       });
 
-      it('login should return an token when logged in with valid credentials.', function(done) {
-        makePostRequest('/auth/login', 'email=tim@dev.nl&password=test', 200, function(err, res) {
-          JSON.parse(res.text).should.have.property("token");
-          done(null, null);
-        });
+      it('should create a tag', function(done) {
+        expect(data.name).to.equal('createdTag');
+        done()
       });
-
-      it('login should return an 401 error when invalid credentials are used.', function(done) {
-        makePostRequest('/auth/login', 'email=tim@dev.nl&password=wrongpassword', 401, done);
-      });
-
-      it('login should return an 401 error when incorrect parameters are used.', function(done) {
-        makePostRequest('/auth/login', 'qwerty', 401, done);
-      });
-
-
-      after(function(done) {
-        UserModel.deleteOne({
-          email: 'tim@dev.nl'
-        }).exec(done);
-      })
     });
 
-    describe('Profile', function() {
+    describe('find', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { params: { id: tagOne._id}, test: true };
+        var req = mockRequest(reqOptions);
 
-      it('registration should return an userprofile with the given properties', function(done) {
-        makePostRequest('/auth/signup', 'email=bob@example.com&name=bob&password=testpassword&sharelocation=true', 200, done)
+        data = await TagController.getTag(req, res);
       });
 
-      after(function(done) {
-        UserModel.deleteOne({
-          email: 'bob@example.com'
-        }).exec(done);
+      it('should find a tag', function(done) {
+        expect(data.name).to.equal('tagOne');
+        done()
       });
-
-      var token = '';
-
-      before(function(done) {
-        var user = new UserModel({
-          email: 'tim@dev.nl',
-          name: 'tim',
-          password: 'test',
-          sharelocation: true
-        });
-        user.save(function(err) {
-          if (err) return done(error, null);
-          done(null, null)
-        });
-
-      });
-
-      it('route should return the user profile when authenticated.', function(done) {
-        makePostRequest('/auth/login', 'email=tim@dev.nl&password=test', 200, function(err, res) {
-          if (err) {
-            console.log(err.text);
-          }
-          if (res) {
-            var json = JSON.parse(res.text);
-            token = json.token;
-            makeAuthGetRequest('/user/profile', token, 200, function(err, res) {
-              res.body.should.be.a('object');
-              res.body.user.should.have.property('name');
-              done(null, null);
-            });
-          }
-        });
-
-      });
-
-      after(function(done) {
-
-        UserModel.deleteOne({
-          email: 'tim@dev.nl'
-        }).exec(done);
-      });
-
-      before(function(done) {
-        var user = new UserModel({
-          email: 'yoeri@river.nl',
-          name: 'yoeri',
-          password: 'kitty',
-          sharelocation: true
-        });
-        user.save(function(err) {
-          if (err) console.log(err);
-          done(null, null)
-        });
-
-      });
-
-      it('should delete a user account when the route is reached', function(done) {
-        makePostRequest('/auth/login', 'email=yoeri@river.nl&password=kitty', 200, function(err, res) {
-          if (err) {
-            console.log(err.text);
-          }
-          if (res) {
-            var json = JSON.parse(res.text);
-            token = json.token;
-            makeAuthGetRequest('/user/profile', token, 200, function(err, res) {
-              var profile = JSON.parse(res.text).user;
-              makeAuthDeleteRequest('/user/destroy/' + profile._id, token, 200, done);
-
-            });
-          }
-        });
-      });
-
     });
 
-    describe('connections', function(done) {
-      before(function(done) {
-        var user = new UserModel({
-          email: 'yoeri@connectiontests.nl',
-          name: 'yoeri',
-          password: 'kitty',
-          sharelocation: true
-        });
-        user.save(function(err) {
-          if (err) console.log(err);
-          done(null, null)
-        });
+    describe('update', function(done) {
+      before( async() => {
+        var reqOptions = { params: { id: tagOne._id}, body: {name: 'newName', isPrivate: false}, test: true };
+        var req = mockRequest(reqOptions);
+        data = await TagController.updateTag(req, res);
+        updateTag = await TagController.getTag(req, res);
       });
 
-      it('should return a list of user ', function() {
-        makePostRequest('/auth/login', 'email=yoeri@connectiontests.nl&password=kitty', 200, function(err, res) {
-          if (err) {
-            console.log(err.text);
-          }
-          if (res) {
-            var json = JSON.parse(res.text);
-            token = json.token;
-            makeAuthGetRequest('/user/list', token, 200, function(err, res) {
-              res.body.users.should.be.a('array');
+      it('should update a tag', function(done) {
+        expect(updateTag.name).to.equal('newName');
+        expect(updateTag.isPrivate).to.equal(false);
+        done()
+      });
+    });
 
-            });
-          }
-        });
+    describe('delete', function(done) {
+      before( async() => {
+        var reqOptions = { params: { id: tagTwo._id}, test: true };
+        var req = mockRequest(reqOptions);
+        deletedTag = await TagController.deleteTag(req, res);
+        data = await TagController.getTag(req, res);
       });
 
-      after(function(done) {
-        UserModel.deleteOne({
-          email: 'yoeri@connectiontests.nl'
-        }).exec(done)
+      it('should delete a tag', function(done) {
+        expect(deletedTag.deletedCount).to.equal(1);
+        expect(data).to.equal(null);
+        done()
       });
     });
   });
 
+  describe('Friends', function(done) {
 
+    const res = mockRequest();
+    res.status = sinon.stub().returns(res);
+    res.send = sinon.spy();
 
+    describe('create', function(done) {
+      var data = null;
+      before( async() => {
 
-  describe('Request', function() {
-    var token = '';
-    before(function(done) {
+        var reqOptions = { params: { id: userOne._id}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+        success = await FriendController.createRequest(req, res);
 
-      this.users = [new UserModel({
-          email: 'tim@test.nl',
-          name: 'tim',
-          password: 'test',
-          sharelocation: true
-        }),
-        new UserModel({
-          email: 'bart@test.nl',
-          name: 'bart',
-          password: 'test',
-          sharelocation: true
-        })
-      ]
-      UserModel.create(this.users, function(err) {
-        done(null, null)
+        var reqOptions = { params: { id: localUser._id}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+        fail = await FriendController.createRequest(req, res);
+
+      });
+
+      it('should not create a friend request if user and friend is are the same', function(done) {
+        expect(fail.error).to.be.an('string');
+        expect(fail.error).to.equal('Can not add youself as friend');
+        done()
+      });
+
+      it('should create a friend request', function(done) {
+        expect(success.confirmed).to.equal(false);
+        expect(success.user).to.equal(localUser._id);
+        expect(success.friend).to.equal(userOne._id);
+        done()
+      });
+    });
+
+    describe('find', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { params: { id: userOne._id}, user: userOne, test: true };
+        var req = mockRequest(reqOptions);
+
+        data = await FriendController.getRequest(req, res);
+      });
+
+      it('should find a request', function(done) {
+        expect(data.own_requests).to.be.empty;
+        expect(data.requests).to.have.lengthOf(2);
+        done()
+      });
+    });
+
+    describe('update', function(done) {
+      before( async() => {
+        var reqOptions = { params: { id: userTwo._id}, body: {type: 'accept'}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+
+        accept = await FriendController.updateRequest(req, res);
+      });
+
+      it('should update and accept a request', function(done) {
+        expect(accept.confirmed).to.equal(true);
+        expect(accept.validated).to.equal(false);
+        done()
+      });
+
+      before( async() => {
+        var reqOptions = { params: { id: userTwo._id}, body: {type: 'validate'}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+
+        validate = await FriendController.updateRequest(req, res);
+      });
+
+      it('should update and validate a request', function(done) {
+        expect(validate.confirmed).to.equal(true);
+        expect(validate.validated).to.equal(true);
+        done()
+      });
+    });
+
+    describe('delete', function(done) {
+      before( async() => {
+        var reqOptions = { params: { id: localUser._id}, body: {type: 'deny'}, user: userOne, test: true };
+        var req = mockRequest(reqOptions);
+
+        deny = await FriendController.deleteRequest(req, res);
+      });
+
+      it('should deny and delete a request', function(done) {
+        expect(String(localUser._id)).to.equal(String(deny.user));
+        done()
+      });
+
+      before( async() => {
+        var reqOptions = { params: { id: userOne._id}, body: {type: 'cancel'}, user:localUser, test: true };
+        var req = mockRequest(reqOptions);
+
+        cancel = await FriendController.deleteRequest(req, res);
+      });
+
+      it('should deny and delete a request', function(done) {
+        expect(String(localUser._id)).to.equal(String(cancel.user));
+        done()
       });
 
     });
-
-    it('route should make a friend request.', function(done) {
-      var users = this.users;
-      makePostRequest('/auth/login', 'email=tim@test.nl&password=test', 200, function(err, res) {
-        if (err) {
-          console.log(err.text);
-        }
-        if (res) {
-          var json = JSON.parse(res.text);
-          token = json.token;
-          makeAuthPostRequest('/friend/request', 'friend=' + users[1]._id, token, 200, done);
-        }
-      });
-
-    });
-
-    it('route should accept friend request.', function(done) {
-      var users = this.users;
-      makePostRequest('/auth/login', 'email=bart@test.nl&password=test', 200, function(err, res) {
-        if (err) {
-          console.log(err.text);
-        }
-        if (res) {
-          var json = JSON.parse(res.text);
-          token = json.token;
-          makeAuthPostRequest('/friend/acceptrequest', 'friend=' + users[0]._id, token, 200, done);
-        }
-      });
-
-    });
-
-    after(function(done) {
-
-      FriendModel.deleteMany({}).exec();
-
-      done(null, null);
-    })
-
-    before(function(done) {
-      this.request = new FriendModel({
-        friend1: this.users[0]._id,
-        friend2: this.users[1]._id,
-        confirmed: false
-      })
-
-      FriendModel.create(this.request, function(err) {
-        done(null, null)
-      });
-    })
-
-    it('route should deny friend request.', function(done) {
-      var users = this.users;
-      makePostRequest('/auth/login', 'email=bart@test.nl&password=test', 200, function(err, res) {
-        if (err) {
-          console.log(err.text);
-        }
-        if (res) {
-          var json = JSON.parse(res.text);
-          token = json.token;
-          makeAuthPostRequest('/friend/denyrequest', 'friend=' + users[1]._id, token, 200, done);
-        }
-      });
-
-    });
-
-    after(function(done) {
-
-      UserModel.deleteOne({
-        email: 'tim@test.nl'
-      }).exec();
-
-      UserModel.deleteOne({
-        email: 'bart@test.nl'
-      }).exec();
-
-      FriendModel.deleteMany({}).exec();
-
-      done(null, null);
-    })
   });
 
+  describe('Chats', function(done) {
+
+    const res = mockRequest();
+    res.status = sinon.stub().returns(res);
+    res.send = sinon.spy();
+
+    describe('create', function(done) {
+      var success = null;
+      var fail = null;
+      before( async() => {
+
+        var reqOptions = { params: { id: userOne._id}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+        success = await ChatController.createRequest(req, res);
+
+        var reqOptions = { params: { id: localUser._id}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+        fail = await ChatController.createRequest(req, res);
+
+      });
+
+      it('should not create a chat if user1 and user2 is are the same', function(done) {
+        expect(fail.error).to.be.an('string');
+        expect(fail.error).to.equal('You can\'t add yourself as a chat.');
+        done()
+      });
+
+      it('should create a chat', function(done) {
+        expect(success.user1).to.equal(localUser._id);
+        expect(success.user2).to.equal(userOne._id);
+        done()
+      });
+    });
+
+    describe('find', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { user: userOne, test: true };
+        var req = mockRequest(reqOptions);
+
+        data = await ChatController.getRequests(req, res);
+      });
+
+      it('should find a chat', function(done) {
+        expect(data.chats).to.have.lengthOf(2);
+        done()
+      });
+    });
+  });
+
+  describe('Users', function(done) {
+
+    const res = mockRequest();
+    res.status = sinon.stub().returns(res);
+    res.send = sinon.spy();
+
+    describe('create', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { body: { email: 'newUser@test.nl', password:'test', name: 'createdUser'}, test: true };
+        var req = mockRequest(reqOptions);
+
+        data = await AuthController.signupUser(req, res);
+      });
+
+      it('should signup user', function(done) {
+        expect(data.name).to.equal('createdUser');
+        expect(data.sharelocation).to.equal(false);
+        expect(data.isAdmin).to.equal(false);
+        expect(data.isPrivate).to.equal(false);
+        expect(data.email).to.equal('newUser@test.nl');
+        done()
+      });
+    });
+
+    describe('find', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { params: { id: userOne._id}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+
+        userone = await UserController.getUser(req, res);
+      });
+
+      it('should find a user', function(done) {
+        expect(userone.name).to.equal('userOne');
+        done()
+      });
+
+      before( async() => {
+        var reqOptions = { params: { id: 'profile'}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+
+        usertwo = await UserController.getUser(req, res);
+      });
+
+      it('should find profile', function(done) {
+        expect(usertwo.name).to.equal('local');
+        done()
+      });
+
+      before( async() => {
+        var reqOptions = { query: { tags: 'tagThree'}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+
+        userByTags = await UserController.getUsers(req, res);
+      });
+
+      it('should find users by tags', function(done) {
+        expect(userByTags.users).to.be.an('array');
+        expect(userByTags.users[0].name).to.equal('userThree');
+        done()
+      });
+
+
+    });
+
+    describe('update', function(done) {
+      before( async() => {
+        var reqOptions = { params: { id: userOne._id}, body: {name: 'newName', isPrivate: true, aboutme: 'This is me.', tags: [tagOne._id]}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+
+        data = await UserController.updateUser(req, res);
+        updatedUser = await UserController.getUser(req, res)
+      });
+
+      it('should update a user', function(done) {
+        expect(updatedUser.name).to.equal('newName');
+        expect(updatedUser.isPrivate).to.equal(true);
+        expect(updatedUser.aboutme).to.equal('This is me.');
+        expect(updatedUser.tags).to.be.an('array');
+        done()
+      });
+    });
+
+
+    describe('delete', function(done) {
+      before( async() => {
+        var reqOptions = { params: { id: userOne._id}, user: localUser, test: true };
+        var req = mockRequest(reqOptions);
+        deletedUser = await UserController.deleteUser(req, res);
+        data = await UserController.getUser(req, res);
+      });
+
+      it('should delete a user', function(done) {
+        expect(deletedUser.deletedCount).to.equal(1);
+        expect(data).to.equal(null);
+        done()
+      });
+    });
+  });
 
   after(function(done) {
-    mongoose.connection.close(done);
+    mongoose.connection.db.dropDatabase(function(){
+      mongoose.connection.close(done);
+    });
   });
 
 });

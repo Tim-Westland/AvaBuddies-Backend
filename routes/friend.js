@@ -16,12 +16,12 @@ const message = require('../config/errorMessages');
 // });
 
 router.route('/')
-	.get(Controller.getRequests);
+	.get(Controller.getRequests)
+	.post(Controller.createRequest);
 
 router.route('/:id')
 	.get(Controller.getRequest)
 	.put(Controller.updateRequest)
-	.post(Controller.createRequest)
 	.delete(Controller.deleteRequest);
 
 // router.get("/allconnections", function (req, res, next) {

@@ -30,7 +30,6 @@ exports.getRequest = async (req, res) => {
       user: req.user._id,
       confirmed: false
     })
-    .populate('user friend', '-image -password')
     .exec().then(function(result) {
       return result;
     }).catch(function(err) {
@@ -41,7 +40,6 @@ exports.getRequest = async (req, res) => {
       friend: req.params.id,
       confirmed: false
     })
-    .populate('user friend', '-image -password')
     .exec().then(function(result) {
       return result;
     }).catch(function(err) {
@@ -55,11 +53,11 @@ exports.getRequest = async (req, res) => {
 };
 
 exports.createRequest = async (req, res) => {
-  if (req.params.id === req.user._id) {
+  if (req.body.id === req.user._id) {
     return returnData(req.test, {error: 'Can not add youself as friend'}, res, 422);
   }
 
-  var friend = new Friend({ user: req.user._id, friend: req.params.id })
+  var friend = new Friend({ user: req.user._id, friend: req.body.id })
   var savedFriend = await friend.save()
   .then((result) => {
     return result;
@@ -71,7 +69,7 @@ exports.createRequest = async (req, res) => {
 
 exports.updateRequest = async(req, res) => {
   if (req.body.type == 'accept') {
-    var friend = await Friend.findOneAndUpdate({ friend: req.params.id, user: req.user._id, confirmed: false, validated: false},
+    var friend = await Friend.findOneAndUpdate({ friend: req.user._id, user: req.params.id, confirmed: false, validated: true},
       {confirmed: true}, {new: true})
     .exec().then(function(result) {
       return result;
@@ -105,8 +103,14 @@ exports.updateRequest = async(req, res) => {
 
 exports.deleteRequest = async(req, res) => {
   var error = null;
-  if (req.body.type == 'deny') {
-    var friend = await Friend.findOneAndDelete({ friend: req.user._id, user: req.params.id
+    var friend = await Friend.findOneAndDelete({
+      $or: [{
+        user: req.user._id,
+        friend:req.params.id
+      }, {
+        user: req.params.id,
+        friend: req.user._id
+      }]
     }).exec().then(function(result) {
       return result;
     }).catch(function(err) {
@@ -118,21 +122,6 @@ exports.deleteRequest = async(req, res) => {
     } else {
       return returnData(req.test, friend, res);
     }
-
-  } else if (req.body.type == 'cancel') {
-    var friend = await Friend.findOneAndDelete({ friend: req.params.id
-    }).exec().then(function(result) {
-      return result;
-    }).catch(function(err) {
-      var error = err.message;
-    });
-
-    if (!friend || error) {
-      return returnData(req.test, {error: 'Could not delete request'}, res, 500);
-    } else {
-      return returnData(req.test, friend, res);
-    }
-  }
 };
 
 function returnData (test, data, res, error) {

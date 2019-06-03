@@ -29,11 +29,8 @@
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "simple-oauth2": "^2.2.1",
-<<<<<<< HEAD
     "socket.io": "^2.2.0",
-=======
     "sinon": "^7.3.2",
->>>>>>> REST_refactoring
     "supertest": "^4.0.2",
     "swagger-ui-express": "^4.0.2"
   },

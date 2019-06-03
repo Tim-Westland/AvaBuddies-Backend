@@ -16,11 +16,13 @@ const TagController = require('../controllers/tagController');
 const FriendController = require('../controllers/friendController');
 const AuthController = require('../controllers/authController');
 const ChatController = require('../controllers/chatController');
+const ChallengeController = require('../controllers/challengeController');
 
 const User = require('../models/user');
 const Friend = require('../models/friend');
 const Tag = require('../models/tag');
 const Chat = require('../models/chat');
+const Challenge = require('../models/challenge');
 var app = express();
 
 async function get(res, req) {
@@ -62,6 +64,24 @@ describe('Tests', function(done) {
     });
     tagThree.save(function() {});
 
+    challengeOne = new Challenge({
+      title: 'challengeOne',
+      description: 'challengeOne'
+    });
+    challengeOne.save(function() {});
+
+    challengeTwo = new Challenge({
+      title: 'challengeTwo',
+      description: 'challengeTwo'
+    });
+    challengeTwo.save(function() {});
+
+    challengeThree = new Challenge({
+      title: 'challengeThree',
+      description: 'challengeThree'
+    });
+    challengeThree.save(function() {});
+
     localUser = new User({
       email: 'local@test.nl',
       name: 'local',
@@ -101,14 +121,14 @@ describe('Tests', function(done) {
 
     requestTwo = new Friend({
       user: localUser._id,
-      friend: userOne._id,
-      accepted: true
+      friend: userOne._id
     });
     requestTwo.save(function() {});
 
     requestThree = new Friend({
       user: userThree._id,
-      friend: localUser._id
+      friend: localUser._id,
+      validated: true
     });
     requestThree.save(function() { done(null, null) });
 
@@ -208,14 +228,13 @@ describe('Tests', function(done) {
       var data = null;
       before( async() => {
 
-        var reqOptions = { params: { id: userOne._id}, user: localUser, test: true };
+        var reqOptions = { body: { id: userOne._id}, user: localUser, test: true };
         var req = mockRequest(reqOptions);
         success = await FriendController.createRequest(req, res);
 
-        var reqOptions = { params: { id: localUser._id}, user: localUser, test: true };
+        var reqOptions = { body: { id: localUser._id}, user: localUser, test: true };
         var req = mockRequest(reqOptions);
         fail = await FriendController.createRequest(req, res);
-
       });
 
       it('should not create a friend request if user and friend is are the same', function(done) {
@@ -250,7 +269,7 @@ describe('Tests', function(done) {
 
     describe('update', function(done) {
       before( async() => {
-        var reqOptions = { params: { id: userTwo._id}, body: {type: 'accept'}, user: localUser, test: true };
+        var reqOptions = { params: { id: userThree._id}, body: {type: 'accept'}, user: localUser, test: true };
         var req = mockRequest(reqOptions);
 
         accept = await FriendController.updateRequest(req, res);
@@ -258,7 +277,7 @@ describe('Tests', function(done) {
 
       it('should update and accept a request', function(done) {
         expect(accept.confirmed).to.equal(true);
-        expect(accept.validated).to.equal(false);
+        expect(accept.validated).to.equal(true);
         done()
       });
 
@@ -270,7 +289,7 @@ describe('Tests', function(done) {
       });
 
       it('should update and validate a request', function(done) {
-        expect(validate.confirmed).to.equal(true);
+        expect(validate.confirmed).to.equal(false);
         expect(validate.validated).to.equal(true);
         done()
       });
@@ -278,7 +297,7 @@ describe('Tests', function(done) {
 
     describe('delete', function(done) {
       before( async() => {
-        var reqOptions = { params: { id: localUser._id}, body: {type: 'deny'}, user: userOne, test: true };
+        var reqOptions = { params: { id: localUser._id}, user: userOne, test: true };
         var req = mockRequest(reqOptions);
 
         deny = await FriendController.deleteRequest(req, res);
@@ -290,14 +309,14 @@ describe('Tests', function(done) {
       });
 
       before( async() => {
-        var reqOptions = { params: { id: userOne._id}, body: {type: 'cancel'}, user:localUser, test: true };
+        var reqOptions = { params: { id: userThree._id}, user:localUser, test: true };
         var req = mockRequest(reqOptions);
 
         cancel = await FriendController.deleteRequest(req, res);
       });
 
       it('should deny and delete a request', function(done) {
-        expect(String(localUser._id)).to.equal(String(cancel.user));
+        expect(String(localUser._id)).to.equal(String(cancel.friend));
         done()
       });
 
@@ -451,6 +470,74 @@ describe('Tests', function(done) {
       it('should delete a user', function(done) {
         expect(deletedUser.deletedCount).to.equal(1);
         expect(data).to.equal(null);
+        done()
+      });
+    });
+  });
+
+  describe('Challenges', function(done) {
+
+    const res = mockRequest();
+    res.status = sinon.stub().returns(res);
+    res.send = sinon.spy();
+
+    describe('create', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { body: { title: 'createdChallenge', description: 'createdChallenge'}, test: true };
+        var req = mockRequest(reqOptions);
+
+        data = await ChallengeController.createChallenge(req, res);
+      });
+
+      it('should create a challenge', function(done) {
+        expect(data.title).to.equal('createdChallenge');
+        done()
+      });
+    });
+
+    describe('find', function(done) {
+      var data = null;
+      before( async() => {
+        var reqOptions = { params: { id: challengeOne._id}, test: true };
+        var req = mockRequest(reqOptions);
+
+        data = await ChallengeController.getChallenge(req, res);
+      });
+
+      it('should find a challenge', function(done) {
+        expect(data.title).to.equal('challengeOne');
+        done()
+      });
+    });
+
+    describe('update', function(done) {
+      before( async() => {
+        var reqOptions = { params: { id: challengeOne._id}, body: {title: 'newName', description: 'description', task: 'aTask'}, test: true };
+        var req = mockRequest(reqOptions);
+        data = await ChallengeController.updateChallenge(req, res);
+      });
+
+      it('should update a tag', function(done) {
+        expect(data.title).to.equal('newName');
+        expect(data.description).to.equal('description');
+        expect(data.task).to.equal('aTask');
+        done()
+      });
+    });
+
+    describe('delete', function(done) {
+      before( async() => {
+        var reqOptions = { params: { id: challengeThree._id}, test: true };
+        var req = mockRequest(reqOptions);
+        deletedChallenge = await ChallengeController.deleteChallenge(req, res);
+        data = await ChallengeController.getChallenge(req, res);
+      });
+
+      it('should delete a Challenge', function(done) {
+        expect(deletedChallenge.title).to.equal('challengeThree');
+        expect(deletedChallenge.description).to.equal('challengeThree');
+        expect(data.error).to.equal('Something went wrong');
         done()
       });
     });

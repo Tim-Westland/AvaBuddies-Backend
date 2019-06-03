@@ -16,7 +16,7 @@ exports.getChallenges = async(req, res) => {
   if (!challenges || error) {
     return returnData(req.test, {error: 'Something went wrong'}, res, 400);
   } else {
-    return returnData(req.test, challenges, res);
+    return returnData(req.test, {challenges: challenges}, res);
   }
 };
 

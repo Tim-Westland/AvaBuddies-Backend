@@ -129,16 +129,7 @@ function returnData (test, data, res, error) {
   if (test) {
     return data;
   } else if (error) {
-    switch(error) {
-      case 422:
-        return res.status(422).send(data);
-        break;
-      case 500:
-        return res.status(500).send(data);
-        break;
-      default:
-        return res.status(494).send(data);
-    }
+    return res.status(400).send(data);
   } else {
     return res.json(data);
   }

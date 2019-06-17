@@ -1,0 +1,868 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Avabuddies backend",
+    "description": "This is the backend for the avabuddies iOS and Android app",
+    "contact": {
+      "email": "info@avanbuddies.nl"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://dev.avabuddies.nl/"
+    },
+    {
+      "url": "https://www.avabuddies.nl"
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Everything related to authentication"
+    },
+    {
+      "name": "user",
+      "description": "Methods to modify your account"
+    },
+    {
+      "name": "friends",
+      "description": "Methods to make friends, see your friends and accept friend requests"
+    },
+    {
+      "name": "tag",
+      "description": "Methods to manage tags"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "users": {
+        "type": "object",
+        "required": [
+          "email",
+          "name",
+          "password",
+          "sharelocation"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "aboutme": {
+            "type": "string"
+          },
+          "sharelocation": {
+            "type": "string"
+          },
+          "isAdmin": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "default": false
+          },
+          "image": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/tag"
+            }
+          }
+        },
+        "xml": {
+          "name": "User"
+        }
+      },
+      "friends": {
+        "type": "object",
+        "required": [
+          "user",
+          "friend",
+          "confirmed",
+          "validated"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/users"
+          },
+          "friend": {
+            "$ref": "#/components/schemas/users"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "default": false
+          },
+          "validated": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "xml": {
+          "name": "Tag"
+        }
+      },
+      "tag": {
+        "type": "object",
+        "required": [
+          "name",
+          "isPrivate",
+          "sharelocation"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "isPrivate": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "xml": {
+          "name": "Tag"
+        }
+      },
+      "userArray": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/users"
+            }
+          }
+        }
+      },
+      "tagArray": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/tag"
+            }
+          }
+        }
+      },
+      "friendArray": {
+        "type": "object",
+        "properties": {
+          "friends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/friends"
+            }
+          }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register user",
+        "description": "Register a new user.",
+        "operationId": "createUser",
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/users"
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "shareLocation",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "header",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "password",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "jwt token"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login to user account.",
+        "operationId": "signup",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "password",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "jwt token"
+          },
+          "500": {
+            "description": "error while saving user"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get an list of users",
+        "operationId": "getUsers",
+        "responses": {
+          "200": {
+            "description": "A list of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/userArray"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Find user by ID",
+        "description": "Returns a single user",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of user to return",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/users"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "User not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Deletes a user",
+        "description": "This can only be done if you are admin or the profile is your own.",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "User id to delete",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "User not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Updated user",
+        "description": "This can only be done if you are admin or the profile is your own.",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "name that need to be updated",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Updated user object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/users"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid user supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "User not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends": {
+      "post": {
+        "tags": [
+          "friends"
+        ],
+        "summary": "Create friend request",
+        "description": "This can only be done by the logged in user.",
+        "operationId": "createRequest",
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/users"
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "friends"
+        ],
+        "summary": "Get an list of friend connection",
+        "operationId": "getFriends",
+        "responses": {
+          "200": {
+            "description": "A list of friend connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/friendArray"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/friends/{userId}": {
+      "get": {
+        "tags": [
+          "friends"
+        ],
+        "summary": "Find requests by ID",
+        "description": "Return all open requests you made and others made to you",
+        "operationId": "getRequestsById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of user to return",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/friendArray"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "Request not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "friends"
+        ],
+        "summary": "Deletes a request",
+        "description": "Deny or cancel a request to delete it.",
+        "operationId": "deleteRequest",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "User id of request to delete",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Use 'cancel' to delete a request you made. Use 'deny' to delete a request to you.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "Request not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "friends"
+        ],
+        "summary": "Updated user",
+        "description": "Accept or validate a request to update it's status",
+        "operationId": "updateRequest",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "User id of request to update",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Use 'accept' to accept a request. Use 'validate' to validate a request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Updated friends object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/friends"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "Request not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/tags": {
+      "get": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "Get all tag",
+        "description": "Get all tags that define personality on profile.",
+        "operationId": "getTags",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/tagArray"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "User not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "Create tag",
+        "description": "Create a tag to define personality on profile.",
+        "operationId": "createTag",
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/tag"
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isPrivate",
+            "in": "query",
+            "description": "If the tag is private or not.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/tags/{id}": {
+      "get": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "Get tag",
+        "description": "Get a tag that defines personality on profile.",
+        "operationId": "getTag",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "id of the tag",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/tag"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "Updated tag",
+        "description": "Update tags that defines personality on profile.",
+        "operationId": "updateTag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User id of request to update",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Name of the tag.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isPrivate",
+            "in": "query",
+            "description": "If the tag is private or not.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Updated tag object",
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/tag"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "Tag not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "Deletes a tag",
+        "description": "Deletes a tag from the tag table and users that use the tag.",
+        "operationId": "deleteTag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tag id of tag to delete",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "404": {
+            "description": "Tag not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  }
+}

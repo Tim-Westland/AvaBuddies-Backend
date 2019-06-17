@@ -1,106 +1,43 @@
-const Challange = require('../models/challenge');
+const Challenge = require('../models/challenge');
 const mongoose = require('mongoose');
 const auth = require('../modules/authentication');
 
-
-exports.getChallenges = async(req, res) => {
-  var error;
-  const challenges = await Challange.find().exec()
-  .then(function (result) {
-    return result;
-  }).catch(function (err) {
-      var error = err.message;
-      return err;
-  });
-
-  if (!challenges || error) {
-    return returnData(req.test, {error: 'Something went wrong'}, res, 400);
-  } else {
-    return returnData(req.test, {challenges: challenges}, res);
-  }
-};
-
 exports.getChallenge = async(req, res) => {
-  var error;
-  var challenge = await Challange.findOne({_id: req.params.id})
-  .exec()
-  .then(function (result) {
-    return result;
-  }).catch(function (err) {
-      var error = err.message;
-      return err;
-  });
-
-  if (!challenge || error) {
-    return returnData(req.test, {error: 'Something went wrong'}, res, 400);
-  } else {
-    return returnData(req.test, challenge, res);
-  }
+  var challenge = await Challenge.getModel(req.params.id)
+  return returnData(req.test, challenge, res);
 };
 
 exports.createChallenge = async(req, res) => {
-  var error;
-  var challenge = new Challange( req.body )
-  var savedChallenge = await challenge.save()
-  .then((result) => {
-    return result;
-  }).catch((err) => {
-      var error = err.message;
-      return err;
-  });
-
-  if (!challenge || error) {
-    return returnData(req.test, {error: 'Something went wrong'}, res, 400);
+  if (!req.body.title || !req.body.description || !req.body.task || !req.body.amount) {
+    return returnData(req.test, {error: "Could not handle request"}, res);
   } else {
-    return returnData(req.test, challenge, res);
+    var savedTag = await Challenge.saveModel(new Challenge(req.body))
+
+    return returnData(req.test, savedTag, res);
   }
 };
 
 exports.updateChallenge = async(req, res) => {
-  var error;
-  var challenge = await Challange.findOneAndUpdate({ _id: req.params.id }, req.body, {new: true})
-  .exec().then(function(result) {
-    return result;
-  }).catch(function(err) {
-    var error = err.message;
-    return err;
-  });
-
-  if (!challenge || error) {
-    return returnData(req.test, {error: 'Something went wrong'}, res, 400);
+  if (!req.body.title, !req.body.description, !req.body.task, !req.body.amount) {
+    return returnData(req.test, {error: "Could not handle request"}, res);
   } else {
-    return returnData(req.test, challenge, res);
+    var tag = await Challenge.updateModel(req.params.id, req.body)
+
+    return returnData(req.test, tag, res);
   }
 };
 
 exports.deleteChallenge = async(req, res) => {
-  var error;
-  var challenge = await Challange.findOneAndDelete({ _id: req.params.id })
-  .exec().then(function(result) {
-    return result;
-  }).catch(function(err) {
-    var error = err.message;
-    return err;
-  });
-
-  if (!challenge || error) {
-    return returnData(req.test, {error: 'Something went wrong'}, res, 400);
-  } else {
-    return returnData(req.test, challenge, res);
-  }
+  var tag = await Challenge.deleteModel(req.params.id)
+  return returnData(req.test, tag, res);
 };
 
-function returnData (test, data, res, error) {
-  error = error || 0;
+function returnData (test, data, res) {
   if (test) {
     return data;
+  } else if (data.error) {
+    return res.status(400).send(data.error);
   } else {
-    switch(error) {
-      case 400:
-        return res.status(400).send(data);
-        break;
-      default:
-        return res.json(data);
-    }
+    return res.json(data);
   }
 }

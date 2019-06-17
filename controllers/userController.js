@@ -13,17 +13,9 @@ exports.getUser = async(req, res) => {
   } else {
     userId = req.params.id
   }
+  var user = await User.getModel({_id: userId})
 
-  const user = await User.findOne({ _id: userId })
-    .populate('tags')
-    .select('-password')
-    .exec()
-    .then(function (result) {
-      return result;
-    }).catch(function (err) {
-        return err.message;
-    });
-    return returnData(req.test, user, res);
+  return returnData(req.test, user, res);
 };
 
 exports.getUsers = async(req, res) => {
@@ -35,14 +27,8 @@ exports.getUsers = async(req, res) => {
     var tagIds = await findTags(req.query.tags);
     query = {tags: {$in: tagIds}}
   }
-  const users = await User.find(query)
-  .populate('tags')
-  .select('-password')
-  .exec().then(function (result) {
-    return result
-  }).catch(function (err) {
-      return err.message;
-  });
+  var users = await User.getModel(query)
+
   return returnData(req.test, {users}, res);
 
 };
@@ -67,13 +53,8 @@ exports.updateUser = async(req, res) => {
     req.body.tags = tags;
   }
 
-  const user = await User.updateOne({ _id: userId }, req.body)
-  .exec()
-  .then(function (result) {
-    return result;
-  }).catch(function (err) {
-      return err.message;
-  });
+  const user = await User.updateModel(userId, req.body)
+
   return returnData(req.test, user, res);
 };
 
@@ -85,17 +66,11 @@ exports.deleteUser = async(req, res) => {
   }
 
   if (req.user.isAdmin && userId == req.user._id) {
-    console.log('cannot delete yourself as an admin');
+    return returnData(req.test, {error: "Cannot delete yourself as an admin."}, res);
   } else if (!req.user.isAdmin && userId != req.user._id) {
-    console.log('cannot delete others');
+    return returnData(req.test, {error: "Cannot delete other users."}, res);
   } else {
-    var user = await User.deleteOne({ _id: userId })
-    .exec()
-    .then(function (result) {
-      return result;
-    }).catch(function (err) {
-        return err.message;
-    });
+    var user = await User.deleteModel(userId)
     return returnData(req.test, user, res);
   }
 };
@@ -123,8 +98,10 @@ async function findTags (query, cb) {
 
 function returnData (test, data, res) {
   if (test) {
-    return data
+    return data;
+  } else if (data.error) {
+    return res.status(400).send(data.error);
   } else {
-    return res.json(data)
+    return res.json(data);
   }
 }

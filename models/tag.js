@@ -4,7 +4,8 @@ const Schema = mongoose.Schema;
 const TagSchema = new Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        unique: true
       },
     isPrivate: {
       type: Boolean,
@@ -14,48 +15,51 @@ const TagSchema = new Schema({
 
 });
 
-
-TagSchema.statics.getTags = async () => {
-  let tag = await TagModel.find({})
-    .exec().then((result) => {
-      return result
-    }).catch((err) => {
-      console.log(err.message);
-      return;
-    });
-  return tag;
-}
-
-TagSchema.statics.getTag = async (id) => {
-  let tag = await TagModel.findOne({_id: id})
-    .exec().then((result) => {
-      return result
-    }).catch((err) => {
-      console.log(err.message);
-      return;
-    });
-  return tag;
-}
-
-TagSchema.statics.updateTag = async (id, name, isPrivate) => {
-  let tag = await TagModel.updateOne({ _id: id }, {name: name, isPrivate: isPrivate})
-    .exec().then(function (result) {
-      return result;
-    }).catch(function (err) {
-      console.log(err.message);
-      return;
-    });
-  return tag;
-}
-
-TagSchema.statics.saveTag = async (tag) => {
-  var newTag = await tag.save()
+TagSchema.statics.saveModel = async (model) => {
+  var data = await model.save()
   .then((result) => {
     return result;
   }).catch((err) => {
-    console.log(err.message);
-    return;
+    return {error: err.message};
   });
-  return newTag;
+  return data;
 }
+
+TagSchema.statics.getModel = async (id) => {
+  if (id)
+    id = {_id: id};
+  else
+    id = {};
+
+  let data = await TagModel.find(id)
+    .exec().then((result) => {
+      return result
+    }).catch((err) => {
+      return {error: err.message};
+    });
+  return data;
+}
+
+
+TagSchema.statics.updateModel = async (id, model) => {
+  let data = await TagModel.updateOne({ _id: id }, model)
+    .exec().then(function (result) {
+      return result;
+    }).catch(function (err) {
+      return {error: err.message};
+    });
+  return data;
+}
+
+TagSchema.statics.deleteModel = async (id) => {
+  var data = await TagModel.deleteOne({_id: id})
+  .exec()
+  .then(function (result) {
+    return result;
+  }).catch(function (err) {
+    return {error: err.message};
+  });
+  return data;
+}
+
 var TagModel = module.exports = mongoose.model('Tag', TagSchema);

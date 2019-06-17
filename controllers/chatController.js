@@ -24,10 +24,6 @@ exports.deleteRequest = async (req, res) => {
     });
     return returnData(req.test, chat, res);
 
-    // Chat.deleteOne({_id: req.params.id}).exec(function (err) {
-    //     if (err) return returnData(req.test, {error: "could not find chat " + err}, res, 500);
-    //     return returnData(req.test, {message: message.success}, res);
-    // });
 };
 
 function returnData (test, data, res, error) {

@@ -4,96 +4,66 @@ const auth = require('../modules/authentication');
 
 
 exports.getRequests = async (req, res) => {
-  Friend.find({
-    $or: [{
-      user: req.user._id
-    }, {
-      friend: req.user._id
-    }]
-  }).exec(function(err, friends) {
-    if (err) return res.status(500).json({
-      message: message.error + err
-    });
-    res.json({
-      friends: friends
-    });
-  });
+  var own_requests = await Friend.getModel({$or: [{ user: req.user._id }, { friend: req.user._id }]})
+
+  return returnData(req.test, own_requests, res);
+
 };
 
 exports.getRequest = async (req, res) => {
   var error;
   if (req.user._id != req.params.id) {
-    return returnData(req.test, {error: "You don't have permission to view these friend requests"}, res, 422);
+    return returnData(req.test, {error: "You don't have permission to view these friend requests."}, res);
   }
 
-  var own_requests = await Friend.find({
-      user: req.user._id,
-      confirmed: false
-    })
-    .exec().then(function(result) {
-      return result;
-    }).catch(function(err) {
-      var error = err.message;
-    });
+  var own_requests = await Friend.getModel({user: req.user._id, confirmed: false})
+  var requests = await Friend.getModel({friend: req.params.id, confirmed: false })
 
-  var requests = await Friend.find({
-      friend: req.params.id,
-      confirmed: false
-    })
-    .exec().then(function(result) {
-      return result;
-    }).catch(function(err) {
-      var error = err.message;
-    });
-  if (error) {
-    return returnData(req.test, message.error + error, res, 500);
+  if (own_requests.error) {
+    data = own_requests.error
+  } else if(requests.error) {
+    data = requests.error;
   } else {
-    return returnData(req.test, {own_requests: own_requests, requests: requests}, res);
+    data = {own_requests: own_requests, requests: requests}
   }
+
+  return returnData(req.test, data, res);
 };
 
 exports.createRequest = async (req, res) => {
   if (req.body.id === req.user._id) {
-    return returnData(req.test, {error: 'Can not add youself as friend'}, res, 422);
+    return returnData(req.test, {error: 'Cannot add youself as a friend.'}, res);
+  } else if (!req.body.id){
+    return returnData(req.test, {error: 'Could not handle request.'}, res);
   }
 
   var friend = new Friend({ user: req.user._id, friend: req.body.id })
-  var savedFriend = await friend.save()
-  .then((result) => {
-    return result;
-  }).catch((err) => {
-      return err.message;
-  });
-  return returnData(req.test, friend, res);
+  var savedFriend = await Friend.saveModel(friend)
+
+  return returnData(req.test, savedFriend, res);
 };
 
 exports.updateRequest = async(req, res) => {
-  if (req.body.type == 'accept') {
-    var friend = await Friend.findOneAndUpdate({ friend: req.user._id, user: req.params.id, confirmed: false, validated: true},
-      {confirmed: true}, {new: true})
-    .exec().then(function(result) {
-      return result;
-    }).catch(function(err) {
-      var error = err.message;
-    });
+  if (!req.body.type){
+    return returnData(req.test, {error: 'Could not handle request.'}, res);
+  } else if (req.body.type == 'accept') {
+    var friend = await Friend.updateModel({ friend: req.user._id, user: req.params.id, confirmed: false, validated: true},
+      {confirmed: true});
 
     if (!friend) {
-      return returnData(req.test, {error: 'Could not find request'}, res, 500);
+      return returnData(req.test, {error: 'Could not find request'}, res);
     } else {
       return returnData(req.test, friend, res);
     }
 
+    return returnData(req.test, friend, res);
+
   } else if (req.body.type == 'validate') {
-    var friend = await Friend.findOneAndUpdate({ user: req.user._id, friend: req.params.id, validated: false},
-      {validated: true}, {new: true})
-    .exec().then(function(result) {
-      return result;
-    }).catch(function(err) {
-      var error = err.message;
-    });
+    var friend = await Friend.updateModel({ user: req.user._id, friend: req.params.id, validated: false},
+      {validated: true});
 
     if (!friend) {
-      return returnData(req.test, {error: 'Could not find request'}, res, 500);
+      return returnData(req.test, {error: 'Could not find request'}, res);
     } else {
       return returnData(req.test, friend, res);
     }
@@ -102,34 +72,21 @@ exports.updateRequest = async(req, res) => {
 
 
 exports.deleteRequest = async(req, res) => {
-  var error = null;
-    var friend = await Friend.findOneAndDelete({
-      $or: [{
-        user: req.user._id,
-        friend:req.params.id
-      }, {
-        user: req.params.id,
-        friend: req.user._id
-      }]
-    }).exec().then(function(result) {
-      return result;
-    }).catch(function(err) {
-      var error = err.message;
-    });
+  var friend = await Friend.deleteModel({
+    $or: [
+      { user: req.user._id, friend:req.params.id},
+      { user: req.params.id, friend: req.user._id }
+    ]
+  })
 
-    if (!friend || error) {
-      return returnData(req.test, {error: 'Could not delete request'}, res, 500);
-    } else {
-      return returnData(req.test, friend, res);
-    }
+  return returnData(req.test, friend, res);
 };
 
-function returnData (test, data, res, error) {
-  error = error || false;
+function returnData (test, data, res) {
   if (test) {
     return data;
-  } else if (error) {
-    return res.status(400).send(data);
+  } else if (data.error) {
+    return res.status(400).send(data.error);
   } else {
     return res.json(data);
   }

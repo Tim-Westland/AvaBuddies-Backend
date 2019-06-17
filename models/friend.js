@@ -19,6 +19,46 @@ const FriendSchema = new Schema({
 });
 
 
-const FriendModel = mongoose.model('Friend', FriendSchema);
+FriendSchema.statics.saveModel = async (model) => {
+  var data = await model.save()
+  .then((result) => {
+    return result;
+  }).catch((err) => {
+    return {error: err.message};
+  });
+  return data;
+}
 
-module.exports = FriendModel;
+FriendSchema.statics.getModel = async (query) => {
+  let data = await FriendModel.find(query)
+  .exec().then(function(result) {
+    return result;
+  }).catch(function(err) {
+    return {error: err.message};
+  });
+  return data;
+}
+
+
+FriendSchema.statics.updateModel = async (query, model) => {
+  let data = await FriendModel.findOneAndUpdate(query, model, {new: true})
+    .exec().then(function (result) {
+      return result;
+    }).catch(function (err) {
+      return {error: err.message};
+    });
+  return data;
+}
+
+FriendSchema.statics.deleteModel = async (query) => {
+  var data = await FriendModel.deleteOne(query)
+  .exec()
+  .then(function (result) {
+    return result;
+  }).catch(function (err) {
+    return {error: err.message};
+  });
+  return data;
+}
+
+var FriendModel = module.exports = mongoose.model('Friend', FriendSchema);

@@ -29,7 +29,7 @@ require('./auth/auth');
 mongoose.connect(process.env.DATABASE, {
   useNewUrlParser: true
 });
-
+mongoose.set('useCreateIndex', true);
 //Get the default connection
 var db = mongoose.connection;
 

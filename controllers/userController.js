@@ -4,7 +4,7 @@ const message = require('../config/errorMessages');
 const mongoose = require('mongoose');
 const handleError = require('../modules/handleError');
 const express = require('express');
-
+const response = require('../modules/response');
 
 
 exports.getUser = async(req, res) => {
@@ -13,17 +13,9 @@ exports.getUser = async(req, res) => {
   } else {
     userId = req.params.id
   }
+  var user = await User.getModel({_id: userId})
 
-  const user = await User.findOne({ _id: userId })
-    .populate('tags')
-    .select('-password')
-    .exec()
-    .then(function (result) {
-      return result;
-    }).catch(function (err) {
-        return err.message;
-    });
-    return returnData(req.test, user, res);
+  return response.data(req.test, user, res);
 };
 
 exports.getUsers = async(req, res) => {
@@ -35,15 +27,9 @@ exports.getUsers = async(req, res) => {
     var tagIds = await findTags(req.query.tags);
     query = {tags: {$in: tagIds}}
   }
-  const users = await User.find(query)
-  .populate('tags')
-  .select('-password')
-  .exec().then(function (result) {
-    return result
-  }).catch(function (err) {
-      return err.message;
-  });
-  return returnData(req.test, {users}, res);
+  var users = await User.getModel(query)
+
+  return response.data(req.test, {users}, res);
 
 };
 
@@ -67,14 +53,9 @@ exports.updateUser = async(req, res) => {
     req.body.tags = tags;
   }
 
-  const user = await User.updateOne({ _id: userId }, req.body)
-  .exec()
-  .then(function (result) {
-    return result;
-  }).catch(function (err) {
-      return err.message;
-  });
-  return returnData(req.test, user, res);
+  const user = await User.updateModel(userId, req.body)
+
+  return response.data(req.test, user, res);
 };
 
 exports.deleteUser = async(req, res) => {
@@ -85,18 +66,12 @@ exports.deleteUser = async(req, res) => {
   }
 
   if (req.user.isAdmin && userId == req.user._id) {
-    console.log('cannot delete yourself as an admin');
+    return response.data(req.test, {error: "Cannot delete yourself as an admin."}, res);
   } else if (!req.user.isAdmin && userId != req.user._id) {
-    console.log('cannot delete others');
+    return response.data(req.test, {error: "Cannot delete other users."}, res);
   } else {
-    var user = await User.deleteOne({ _id: userId })
-    .exec()
-    .then(function (result) {
-      return result;
-    }).catch(function (err) {
-        return err.message;
-    });
-    return returnData(req.test, user, res);
+    var user = await User.deleteModel(userId)
+    return response.data(req.test, user, res);
   }
 };
 
@@ -119,12 +94,4 @@ async function findTags (query, cb) {
   }).catch(function (err) {
       return err.message;
   });
-}
-
-function returnData (test, data, res) {
-  if (test) {
-    return data
-  } else {
-    return res.json(data)
-  }
 }

@@ -1,67 +1,34 @@
 const Tag = require('../models/tag');
 const mongoose = require('mongoose');
 const auth = require('../modules/authentication');
-
-
-exports.getTags = async(req, res) => {
-  const tags = await Tag.find().exec()
-  .then(function (result) {
-    return result;
-  }).catch(function (err) {
-      return err.message;
-  });
-
-  return returnData(req.test, tag = {tags}, res);
-};
+const response = require('../modules/response');
 
 exports.getTag = async(req, res) => {
-  var tag = await Tag.findOne({_id: req.params.id})
-  .exec()
-  .then(function (result) {
-    return result;
-  }).catch(function (err) {
-      return err.message;
-  });
-  return returnData(req.test, tag, res);
+  var tag = await Tag.getModel(req.params.id)
+  return response.data(req.test, tag, res);
 };
 
 exports.createTag = async(req, res) => {
-  var tag = new Tag({name: req.body.name})
-  var savedTag = await tag.save()
-  .then((result) => {
-    return result;
-  }).catch((err) => {
-      return err.message;;
-  });
-  return returnData(req.test, tag, res);
+  if (!req.body.name) {
+    return response.data(req.test, {error: "Could not handle request"}, res);
+  } else {
+    var savedTag = await Tag.saveModel(new Tag({name: req.body.name}))
+
+    return response.data(req.test, savedTag, res);
+  }
 };
 
 exports.updateTag = async(req, res) => {
-  var tag = await Tag.updateOne({ _id: req.params.id }, {name: req.body.name, isPrivate: req.body.isPrivate})
-  .exec()
-  .then(function (result) {
-    return result;
-  }).catch(function (err) {
-      return err.message;
-  });
-  return returnData(req.test, tag, res);
+  if (!req.body.name || !req.body.isPrivate) {
+    return response.data(req.test, {error: "Could not handle request"}, res);
+  } else {
+    var tag = await Tag.updateModel(req.params.id, req.body)
+
+    return response.data(req.test, tag, res);
+  }
 };
 
 exports.deleteTag = async(req, res) => {
-  var tag = await Tag.deleteOne({_id: req.params.id})
-  .exec()
-  .then(function (result) {
-    return result;
-  }).catch(function (err) {
-      return err.message;
-  });
-  return returnData(req.test, tag, res);
+  var tag = await Tag.deleteModel(req.params.id)
+  return response.data(req.test, tag, res);
 };
-
-function returnData (test, data, res) {
-  if (test) {
-    return data
-  } else {
-    return res.json(data)
-  }
-}

@@ -4,7 +4,7 @@ const Controller = require('../controllers/challengeController');
 const auth = require('../modules/authentication');
 
 router.route('/')
-	.get(Controller.getChallenges)
+	.get(Controller.getChallenge)
 	.post(auth.isAdmin, Controller.createChallenge);
 
 router.route('/:id')

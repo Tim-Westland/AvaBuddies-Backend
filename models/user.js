@@ -59,6 +59,39 @@ UserSchema.methods.isValidPassword = async function (password) {
     return compare;
 };
 
-const UserModel = mongoose.model('User', UserSchema);
 
-module.exports = UserModel;
+UserSchema.statics.getModel = async (id) => {
+  let data = await UserModel.find(id)
+    .populate('tags').select('-password').exec()
+    .then((result) => {
+      return result
+    }).catch((err) => {
+      return {error: err.message};
+    });
+  return data;
+}
+
+
+UserSchema.statics.updateModel = async (id, model) => {
+  let data = await UserModel.updateOne({ _id: id }, model)
+    .exec().then(function (result) {
+      return result;
+    }).catch(function (err) {
+      return {error: err.message};
+    });
+  return data;
+}
+
+UserSchema.statics.deleteModel = async (id) => {
+  var data = await UserModel.deleteOne({_id: id})
+  .exec()
+  .then(function (result) {
+    return result;
+  }).catch(function (err) {
+    return {error: err.message};
+  });
+  return data;
+}
+
+
+var UserModel = module.exports = mongoose.model('User', UserSchema);

@@ -37,6 +37,11 @@ TagSchema.statics.getModel = async (id) => {
     }).catch((err) => {
       return {error: err.message};
     });
+    if (data.length <= 1) {
+      data = data[0]
+    } else {
+      data = {tags: data}
+    }
   return data;
 }
 

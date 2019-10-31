@@ -17,7 +17,7 @@
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
     "mock-req-res": "^1.1.0",
-    "mongoose": "^5.4.19",
+    "mongoose": "^5.7.5",
     "morgan": "~1.9.0",
     "msal": "^0.2.4",
     "nodemon": "^1.18.10",
